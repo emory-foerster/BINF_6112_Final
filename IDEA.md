@@ -11,6 +11,6 @@ Report:
 - The longest ORF without a frameshift, if no frameshift is detected.
 
 Outcome:
-- The project should explain the logic used to detect frameshifts and discuss limitations of the approach.\
-- Find the coverage of the longest ORF with a frameshift using bam \
+- The project should explain the logic used to detect frameshifts and discuss limitations of the approach
+- Find the coverage of the longest ORF with a frameshift using bam
 - Using sequences in a family do a similarity score between the longest ORF's with a frameshift \ 
