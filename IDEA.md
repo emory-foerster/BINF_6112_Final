@@ -13,4 +13,6 @@ Report:
 Outcome:
   
   
-The project should explain the logic used to detect frameshifts and discuss limitations of the approach.
+The project should explain the logic used to detect frameshifts and discuss limitations of the approach.\
+find the coverage of the longest ORF with a frameshift using bam \
+using sequences in a family do a similarity score between the longest ORF's with a frameshift \ 
