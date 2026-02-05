@@ -18,3 +18,26 @@ Inputs:
 Outputs:
     - A CSV file summarizing the longest ORF and frameshift status per sequence.
 """
+
+def main():
+    """
+    Purpose:
+    Will execute ORF Detection pipeline
+
+    Inputs:
+    - FASTA file that contains all sequences and parameters
+
+    Outputs:
+    - A CSV file that contains the longest ORF sequence and frameshift status
+
+    High-Level Steps:
+    1. Open the FASTA file
+    2. Read in all sequences
+    3. Identify ORFs
+    4. Find the longest ORF per sequence
+    5. Analyze the potential frameshift for the longest ORF
+    6. Calculate dominance metrics
+    7. Write results to a CSV file
+    """
+    pass
+    
