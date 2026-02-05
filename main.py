@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 main.py
 
@@ -40,4 +42,7 @@ def main():
     7. Write results to a CSV file
     """
     pass
+
+if __name__ == '__main__':
+	main()
     
