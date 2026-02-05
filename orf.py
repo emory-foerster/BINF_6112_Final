@@ -1,5 +1,6 @@
-"""
-def detect_ORF( from output of FASTA_IO):
+#!/usr/bin/env python3
+
+def detect_ORF(seq,frame):
      """
      Purpose:
          To find all ORFs in a sequence using 3 frames and saving them into dictionaries. 
@@ -20,10 +21,17 @@ def detect_ORF( from output of FASTA_IO):
            d. start recording sequence when hit ATG codon 
                - if start codon comes before stop, create new ORF and record nucleotides in both
            e.stop recording sequence when hit stop codons
-           
 
          3. collect all ORF from reading frames
          4. return list of ORF and the additional information 
      """
      pass
-  """
+
+
+def main():
+     detect_ORF()
+
+if __name__ == '__main__':
+	  main()
+
+
