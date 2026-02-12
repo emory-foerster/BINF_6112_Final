@@ -54,4 +54,4 @@ Outcome:
    - output: file - visualizing the potential frameshifts
 5. main.py
    - input: fasta_io.py, orf.py, frameshift.py, report.py
-   - output: report.py (file of type tbd)
+   - output: report (file of type tbd)
