@@ -5,6 +5,11 @@ report.py
 Writes the final results to an output file.
 Supports CSV or JSON output, based on the user's chosen format.
 Used as the last step of the pipeline called by main.py.
+
+# RESEARCH: 
+We want this script to have an output that visualizes where the frameshifts occur and give a summary of the location
+and type of possible frameshift. 
+- research areas: how to produced visualize and formatted output. 
 """
 
 def produce_report(results, output_path, output_format):
