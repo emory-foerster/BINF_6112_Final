@@ -9,12 +9,12 @@ URL : https://github.com/emory-foerster/BINF_6112_Final
 This project is licensed under the [GNU GPL V3 License](LICENSE) - see the [LICENSE](LICENSE) file for details.
 We chose this license to make our software accessible to all, while also keeping our source code and any other changes under the same license. 
 
-
+## Project
 ORF Detection with Frameshift Identification and Analysis 
 
 Extend ORF analysis by incorporating frameshift detection.
 
-Idea:
+## Idea:
 Build a python tool that scans nucleotide FASTA sequences to identify ORF frames and detect candidates
 that show a likely frameshift detection. 
 
@@ -36,12 +36,22 @@ Outcome:
 - Using sequences in a family do a similarity score between the longest ORF's with a frameshift
 - Compare longest ORF to a  database to find closely relative proteins
 
-Project Structure:
-BINF_6112_FINAL/
-  README.md
-  main.py
-  fasta_io.py
-  orf.py
-  frameshift.py
-  report.py
+## Requirements:
+- Python V3
 
+## Project Structure:
+1. fasta_io.py
+   - input: FASTA file
+   - output: Dictionary of sequences
+2. orf.py
+   - input: fasta_io.py (Dictionary of sequences)
+   - output: List of longest ORF for each entry
+3. frameshift.py
+   - input: orf.py (list of longest ORF's for each entry)
+   - output: tbd (we are researching) - some type of text file
+4. report.py
+   - input: frameshift.py (tbd)
+   - output: file - visualizing the potential frameshifts
+5. main.py
+   - input: fasta_io.py, orf.py, frameshift.py, report.py
+   - output: report.py (file of type tbd)
