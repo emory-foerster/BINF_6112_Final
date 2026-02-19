@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#Emory Foerster 
+
 def detect_ORF(seq,frame):
      """
      Purpose:
