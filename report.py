@@ -10,6 +10,16 @@ Used as the last step of the pipeline called by main.py.
 We want this script to have an output that visualizes where the frameshifts occur and give a summary of the location
 and type of possible frameshift. 
 - research areas: how to produced visualize and formatted output. 
+
+Ideas from research: good article https://www.biorxiv.org/content/10.1101/2021.06.10.447953v2.full
+ 
+I think we should use Plotly and Dash to create an html as an output which displays:
+-type of frameshift (+1, +2) vs. length of ORF (similar to Figure 2)
+-Longest ORF proportion of the whole sequence (visual and/or percentage)
+-A frameshift bar with highlighted areas of frameshift potential spots(also starting their position)
+-display in someway the read depth and coverage of longest ORF
+-JSON summary
+
 """
 
 def produce_report(results, output_path, output_format):
