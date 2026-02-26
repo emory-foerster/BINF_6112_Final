@@ -55,3 +55,11 @@ Outcome:
 5. main.py
    - input: fasta_io.py, orf.py, frameshift.py, report.py
    - output: report (file of type tbd)
+  
+   ## fasta.io Testing
+   '''python
+   from fasta_io import read_fasta
+
+   records = read_fasta("example.fasta")
+   for record in records:
+     print(record["ID"], record["Sequence"])
