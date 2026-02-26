@@ -54,9 +54,23 @@ def detect_ORF(seq: str, frame: int) -> list[dict]:
         4. return list of ORF and the additional information 
     """
     pass
+    
+def detect_all_frames(seq: str) -> list[dict]:
+    """
+    Purpose:
+        To run detect_ORF across all three reading frames in a sequence and returns every ORF found. 
+    Input:
+        sequence (str): nucleotide sequence (uppercase)
+    Output:
+        A list that combines all ORF dictionaries created by detect_ORF 
+    High‑level steps:
+        1. Run detect_ORF for frame 0,1,2
+        2. Combine list of dictionaries across all three frames into one list
+        3. Return the combines list
+    """
 
 def main():
-    seq = "ATGCGTACGTTAGCTAGCTAGCTAGCTA"
+    seq = "ATGCGTACGTTAGCTAGCTAGCTAGCTATA"
     print(parse_codons(seq, 1))
 
 
