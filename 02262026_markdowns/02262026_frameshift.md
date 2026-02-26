@@ -1,6 +1,6 @@
 02/26/2026 \
 Function: frameshift.py \
-Group member: Mekhi Lucas 
+Group member: Mekhi Lucas \
 
 
 
@@ -41,7 +41,7 @@ all_orfs = [
 ]
 
 
-# Code for the Function
+#Code for the Function
 
 def longest_orf(all_orfs: list):
     top = 0 
