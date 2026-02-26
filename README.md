@@ -63,3 +63,4 @@ Outcome:
    records = read_fasta("example.fasta")
    for record in records:
      print(record["ID"], record["Sequence"])
+   ```
