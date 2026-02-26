@@ -41,7 +41,7 @@ all_orfs = [
 ]
 
 
-#Code for the Function
+# Code for the Function
 
 def longest_orf(all_orfs: list):
     top = 0 
