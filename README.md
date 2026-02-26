@@ -57,7 +57,7 @@ Outcome:
    - output: report (file of type tbd)
   
    ## fasta.io Testing
-   '''python
+   ```python
    from fasta_io import read_fasta
 
    records = read_fasta("example.fasta")
