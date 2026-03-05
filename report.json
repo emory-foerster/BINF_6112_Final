@@ -1,0 +1,12 @@
+[
+  {
+    "sequence_id": "seqA",
+    "frameshift_suspected": true,
+    "frameshift_position": 600,
+    "shift_type": "+1",
+    "dominance": 0.78,
+    "longest_orf_start": 120,
+    "longest_orf_end": 1320,
+    "longest_orf_length_nt": 1200
+  }
+]
