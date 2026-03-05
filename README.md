@@ -38,6 +38,9 @@ Outcome:
 
 ## Requirements:
 - Python V3
+- Conda binf_final environment from dependencies.txt
+   - Using conda create -n binf_final -f dependencies.txt
+
 
 ## Project Structure:
 1. fasta_io.py
