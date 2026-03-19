@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import json 
+import json
+import csv
 #Runo Siakpebru
 
 results = [
@@ -48,7 +49,15 @@ def validate_results(results):
         3. Optionally check required keys exist (sequence_id, longest_orf fields, frameshift fields).
         4. If checks fail, raise ValueError with a clear message.
     """
-    pass
+    if not isinstance(results, list):
+        raise ValueError("results must be a list")
+
+    if len(results) == 0:
+        raise ValueError("results is empty")
+
+    for i, item in enumerate(results):
+        if not isinstance(item, dict):
+            raise ValueError(f"results[{i}] must be a dict")
 
 
 def normalize_format(output_format):
@@ -101,38 +110,27 @@ def write_csv(results, output_path):
 
     Output:
         None (writes a file)
-
-    High-level steps:
-        1. Decide column names (either fixed list or union of keys across results).
-        2. Open output_path for writing.
-        3. Write header row.
-        4. Write one row per result dict.
-        5. Close the file.
+        
     """
-    pass
+    fieldnames = []
+    s = set()
+
+    for row in results:
+        for key in row.keys():
+            if key not in s:
+                s.add(key)
+                fieldnames.append(key)
+
+    # Write CSV
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+
+        for row in results:
+            writer.writerow(row)
 
 
-def make_frameshift_bar(seq_len, orf_start, orf_end, frameshift_pos):
-    """
-    Purpose:
-        Create a simple text-based visualization that shows ORF location and frameshift position.
 
-    Input:
-        seq_len (int): full sequence length.
-        orf_start (int): longest ORF start.
-        orf_end (int): longest ORF end.
-        frameshift_pos (int or None): frameshift site if suspected.
-
-    Output:
-        str: a bar string like '---====^====---' scaled to a fixed width.
-
-    High-level steps:
-        1. Create a background bar of '-' characters.
-        2. Map ORF start/end positions to bar coordinates and fill that range with '='.
-        3. If frameshift_pos exists, map it to bar coordinate and place '^'.
-        4. Return the bar string.
-    """
-    pass
 
 
 def write_html(results, output_path):
@@ -178,6 +176,8 @@ def produce_report(results, output_path, output_format):
 
     if fmt == "json":
         write_json(results, output_path)
+    elif fmt == "csv":
+        write_csv(results, output_path)
     else:
-        raise ValueError("Only 'json' is supported right now.")
-produce_report(results, "report.json", "json")
+        raise ValueError("Only 'json' and 'csv' options available now.")
+produce_report(results, "report.csv", "csv")
