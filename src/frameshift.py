@@ -56,40 +56,43 @@ def longest_orf(all_orfs: list):
             if orf['length'] > longest['length']:
                 longest = orf
     return longest
-print(longest_orf(all_orfs))
 
 
-# def ORF_coverage_proportion(long_orf:dict, all_orfs:list[dict]):
-# 	'''
-# 	Purpose:
-#         Calculate how dominant the longest ORF is relative to all ORFs found.
 
-#     Input:
-#         long_orf  (dict):       The longest ORF dictionary from detect_ORF
-#         all_orfs  (list[dict]): All ORFs found across all three reading frames
+def ORF_coverage_proportion(long_orf:dict, all_orfs:list[dict]) -> float :
+    '''
+    Purpose:
+        Calculate how dominant the longest ORF is relative to all ORFs found.
 
-#     Output:
-#         float: The longest ORF length divided by total nucleotides across all ORFs
+    Input:
+        long_orf  (dict):       The longest ORF dictionary from detect_ORF
+        all_orfs  (list[dict]): All ORFs found across all three reading frames
 
-#     High-level steps:
-#         1. Sum the "length" value across every dict in all_orfs
-#         2. Divide long_orf["length"] by that total
-# 	'''
-# 	len_long_orf = len(long_orf[seq])
-# 	frame = long_orf[frame]
+    Output:
+        float: The longest ORF length divided by total nucleotides across all ORFs
 
-# 	for orf in all_orfs:
-# 		if orf[frame] == frame:
-# 			total += orf[length]
+    High-level steps:
+        1. Sum the "length" value across every dict in all_orfs
+        2. Divide long_orf["length"] by that total
+    '''
+    len_long_orf = long_orf['length']
+    frame = long_orf['frame']
+    total = 0
 
-# 	coverage_proportion = round(len_long_orf/ total, 3)
+    for orf in all_orfs:
+        total += orf['length']
 
-# 	return long_orf[proportion] = coverage_proportion #I think this works
 
+    print(total)
+    coverage_proportion = round(len_long_orf/ total, 3)
+    long_orf['coverage_proportion'] = coverage_proportion
+    return long_orf
+
+# print(ORF_coverage_proportion(longest_orf(all_orfs), all_orfs)) #just a test delete later
 
 # def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15):
-# 	'''
-# 	Purpose:
+#   '''
+#   Purpose:
 #         Search all_orfs for an ORF in a different reading frame whose start
 #         position falls within a window of the longest ORF's end position,
 #         indicating a possible frameshift continuation.
@@ -111,9 +114,9 @@ print(longest_orf(all_orfs))
 #                long_orf["end"] ± window
 #             c. If yes, return that ORF dict immediately
 #         3. Return None if no neighboring ORF is found
-# 	'''
+#   '''
 
-	
+    
 # def shift_type(long_orf:dict, all_orfs:list[dict]):
 #  '''
 #  Purpose:
@@ -167,8 +170,8 @@ print(longest_orf(all_orfs))
 
 
 # def frameshift_detector_longest_ORF(long_orf: dict, all_orfs: list[dict]):
-# 	'''
-# 	 Purpose:
+#   '''
+#    Purpose:
 #         Orchestrate the full frameshift analysis of the longest ORF by calling
 #         each modular helper function and assembling the final result.
 
@@ -195,15 +198,15 @@ print(longest_orf(all_orfs))
 #         6. Add dominance_ratio, frameshift_flag, and frameshift_details
 #            to long_orf and return it
 
-# 	'''
+#   '''
 
 # def Frame_detect(ORF, threshold):
 #   #detection across all open reading frames
-	
+    
 
 
 # if __name__ == '__main__':
-# 	main()
+#   main()
 
 
 
