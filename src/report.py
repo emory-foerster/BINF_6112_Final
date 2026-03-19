@@ -49,35 +49,7 @@ def validate_results(results):
         3. Optionally check required keys exist (sequence_id, longest_orf fields, frameshift fields).
         4. If checks fail, raise ValueError with a clear message.
     """
-    if not isinstance(results, list):
-        raise ValueError("results must be a list")
-
-    if len(results) == 0:
-        raise ValueError("results is empty")
-
-    for i, item in enumerate(results):
-        if not isinstance(item, dict):
-            raise ValueError(f"results[{i}] must be a dict")
-
-
-def normalize_format(output_format):
-    """
-    Purpose:
-        Normalize the output format string so the rest of the code is consistent.
-
-    Input:
-        output_format (str): user format choice like "json", "csv", "html".
-
-    Output:
-        str: normalized format (lowercase, trimmed).
-
-    High-level steps:
-        1. Convert output_format to string, strip whitespace, lowercase it.
-        2. If empty, raise ValueError.
-        3. Return normalized value.
-    """
-    pass
-
+    pass 
 
 def write_json(results, output_path):
     """
