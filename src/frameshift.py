@@ -90,31 +90,46 @@ def ORF_coverage_proportion(long_orf:dict, all_orfs:list[dict]) -> float :
 
 # print(ORF_coverage_proportion(longest_orf(all_orfs), all_orfs)) #just a test delete later
 
-# def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15):
-#   '''
-#   Purpose:
-#         Search all_orfs for an ORF in a different reading frame whose start
-#         position falls within a window of the longest ORF's end position,
-#         indicating a possible frameshift continuation.
+def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15):
+  '''
+  Purpose:
+        Search all_orfs for an ORF in a different reading frame whose start
+        position falls within a window of the longest ORF's end position,
+        indicating a possible frameshift continuation.
 
-#     Input:
-#         long_orf  (dict):       The longest ORF dictionary
-#         all_orfs  (list[dict]): All ORFs found across all three reading frames
-#         window    (int):        Nucleotide window to search around long_orf end
-#                                 position — default is 15
+    Input:
+        long_orf  (dict):       The longest ORF dictionary
+        all_orfs  (list[dict]): All ORFs found across all three reading frames
+        window    (int):        Nucleotide window to search around long_orf end
+                                position — default is 15
 
-#     Output:
-#         A dictionary of the neighboring ORF if one is found, or None if not
+    Output:
+        A dictionary of the neighboring ORF if one is found, or None if not
 
-#     High-level steps:
-#         1. Get long_orf["end"] and long_orf["frame"] as reference points
-#         2. Iterate through all_orfs
-#             a. Skip any ORF that shares the same frame as long_orf
-#             b. Check if the candidate ORF's start falls within
-#                long_orf["end"] ± window
-#             c. If yes, return that ORF dict immediately
-#         3. Return None if no neighboring ORF is found
-#   '''
+    High-level steps:
+        1. Get long_orf["end"] and long_orf["frame"] as reference points
+        2. Iterate through all_orfs
+            a. Skip any ORF that shares the same frame as long_orf
+            b. Check if the candidate ORF's start falls within
+               long_orf["end"] ± window
+            c. If yes, return that ORF dict immediately
+        3. Return None if no neighboring ORF is found
+  '''
+    end_pos = long_orf['end']
+    wrk_frame = long_orf['frame']
+
+    for orf in all_orfs:
+        if long_orf['frame'] == all_orfs['frame']:
+            continue
+        if end_pos - window <= orf['start'] <= end_pos + window
+            return orf
+
+    return None
+    
+
+
+
+
 
     
 # def shift_type(long_orf:dict, all_orfs:list[dict]):
