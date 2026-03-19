@@ -1,0 +1,2 @@
+sequence_id,frameshift_suspected,frameshift_position,shift_type,dominance,longest_orf_start,longest_orf_end,longest_orf_length_nt
+seqA,True,600,+1,0.78,120,1320,1200

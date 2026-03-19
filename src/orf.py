@@ -27,7 +27,7 @@ def parse_codons(seq: str, frame:int) -> list[tuple[str, int]]:
             codons.append((codon,i))
     return codons
 
-def detect_ORF(seq: str, frame: int) -> list[dict]:
+def detect_ORF(codon_list: list[tuple[str,int]], frame: int) -> list[dict]:
     """
     Purpose:
         To find all ORFs in a sequence using 3 frames and saving them into dictionaries. 
@@ -53,7 +53,31 @@ def detect_ORF(seq: str, frame: int) -> list[dict]:
         3. collect all ORF from reading frames
         4. return list of ORF and the additional information 
     """
-    pass
+    stop_codons = ["TAA", "TAG", "TGA"]
+    orfs = []
+    recording = False
+    current_orf = ""
+    start_pos = None
+
+    for codon, position in codon_list:
+        if not recording:
+            if codon == "ATG":
+                recording = True
+                start_pos = position
+                current_orf = codon
+        
+        else: 
+            if codon in stop_codons:
+                current_orf += codon
+                end_pos = position + 3
+                length = end_pos - start_pos
+                orf = {"seq": current_orf, "start":start_pos, "end":end_pos, "length":length, "frame":frame}
+                orfs.append(orf)
+                recording = False
+                current_orf = ""
+            else: 
+                current_orf += codon
+    return orfs
     
 def detect_all_frames(seq: str) -> list[dict]:
     """
@@ -71,7 +95,7 @@ def detect_all_frames(seq: str) -> list[dict]:
 
 def main():
     seq = "ATGCGTACGTTAGCTAGCTAGCTAGCTATA"
-    print(parse_codons(seq, 1))
+    print(detect_ORF(parse_codons(seq, 0),0))
 
 
 if __name__ == '__main__':
