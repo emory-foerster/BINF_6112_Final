@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 #Mekhi Lucas
-#from orf
-
-file = 'sample.fasta'
+import orf
+import fasta_io
+file = '../datasets/Covid_GCF_009858895.2/sample.fasta'
 '''
 Input:
 Using the longest sequence from the ORF function \
@@ -49,7 +49,12 @@ Return the site and type  (+1, +2) of the possible frameshift \
 #     }
 # ]
 
+first = fasta_io.read_fasta(file)
+seq = first[0]
 
+print(seq)
+all_orfs = orf.detect_all_frames(seq)
+print(all_orfs)
 import sys
 
 def longest_orf(all_orfs: list):
@@ -125,12 +130,6 @@ def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15)
             return neighboring_orf
 
     return None
-    
-
-
-
-
-
     
 def shift_type(long_orf:dict, all_orfs:list[dict]):
     '''
@@ -246,7 +245,7 @@ print(build_frameshift_details(longest, all_orfs, neighbor1))
 #   '''
 
 # def Frame_detect(ORF, threshold):
-#   #detection across all open reading frames
+#   #detection across all open reading frames maybe
     
 
 
