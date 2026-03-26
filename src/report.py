@@ -3,6 +3,7 @@
 from typing import List, Dict, Any
 import pandas as pd
 import os
+import plotly.graph_objects as go 
 results = [
     {
         "sequence_id": "seqA",
@@ -118,24 +119,43 @@ def write_csv(results, output_path):
 def write_html(results, output_path):
     """
     Purpose:
-        Write a lightweight HTML report that includes a table and simple visualization bars.
-
-    Input:
-        results (list[dict]): one dict per sequence.
-        output_path (str): filename to write.
-
-    Output:
-        None (writes a file)
-
-    High-level steps:
-        1. Build an HTML header with basic CSS styling.
-        2. For each result dict:
-            a. Extract key fields (sequence_id, lengths, frameshift info, dominance).
-            b. Generate a frameshift bar using make_frameshift_bar().
-            c. Add a table row to the HTML.
-        3. Close the HTML document and write it to output_path.
+        Write an HTML report for all sequences. 
+    Args:
+        results: List of dictionaries containing ORF and frameshift data.
+        output_path: The file path to save the HTML dashboard.
     """
-    pass
+    if not results:
+        print("Warning: No results available to visualize.")
+        return
+    
+    df = pd.DataFrame(results)
+    fig = go.Figure()
+
+    for i, row in df.iterrows():
+        # 1. Add the Sequence Backbone (Total length)
+        # We use the index 'i' as the y-coordinate to stack them
+        fig.add_trace(go.Bar(
+            x=[row.get('full_seq_length', row['longest_orf_end'] + 100)],
+            y=[row['sequence_id']],
+            orientation='h',
+            marker_color='lightgrey',
+            hoverinfo='skip',
+            showlegend=False
+        ))
+    
+    # Add the Longest ORF (Green)
+        fig.add_trace(go.Bar(
+        x=[row['longest_orf_length_nt']],
+        y=[row['sequence_id']],
+        base=row['longest_orf_start'], 
+        orientation='h',
+        name="Longest ORF",
+        marker_color='mediumseagreen',
+        hovertemplate=f"Start: {row['longest_orf_start']}<br>End: {row['longest_orf_end']}<extra></extra>"
+    ))
+
+    fig.write_html(output_path)
+    print(f"HTML report successfully saved to {output_path}")
 
 
 def produce_report(results, output_path, output_format):
@@ -160,6 +180,6 @@ def produce_report(results, output_path, output_format):
         write_json(results, output_path)
     elif fmt == "csv":
         write_csv(results, output_path)
-    else:
-        raise ValueError("Only 'json' and 'csv' options available now.")
-produce_report(results, "report.csv", "csv")
+    elif fmt == "html":
+        write_html(results, output_path)
+produce_report(results,"./report.html","html")
