@@ -2,6 +2,8 @@
 
 #Emory Foerster 
 
+from fasta_io import read_fasta
+
 def parse_codons(seq: str, frame:int) -> list[tuple[str, int]]:
     """
     Purpose:
@@ -79,7 +81,7 @@ def detect_ORF(codon_list: list[tuple[str,int]], frame: int) -> list[dict]:
                 current_orf += codon
     return orfs
     
-def detect_all_frames(seq: str) -> list[dict]:
+def detect_all_frames(seq: str, min_length: int = 0) -> list[dict]:
     """
     Purpose:
         To run detect_ORF across all three reading frames in a sequence and returns every ORF found. 
@@ -92,10 +94,22 @@ def detect_all_frames(seq: str) -> list[dict]:
         2. Combine list of dictionaries across all three frames into one list
         3. Return the combines list
     """
+    ORFs = []
+    for i in range(3):
+        codon_list = parse_codons(seq,i)
+        orf = detect_ORF(codon_list, i)
+        if min_length > 0:
+            orf = [o for o in orf if o['length']>= min_length]
+        ORFs.extend(orf)
+    return ORFs
 
 def main():
-    seq = "ATGCGTACGTTAGCTAGCTAGCTAGCTATA"
-    print(detect_ORF(parse_codons(seq, 0),0))
+    record = read_fasta("../datasets/Covid_GCF_009858895.2/sample.fasta")
+    seq = record[0]["Sequence"]
+    all_orfs = detect_all_frames(seq)
+    meaningful_orfs = detect_all_frames(seq, min_length=150)
+    print(all_orfs)
+    
 
 
 if __name__ == '__main__':
