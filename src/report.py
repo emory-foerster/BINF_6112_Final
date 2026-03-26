@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-import json
-import csv
 #Runo Siakpebru
-
+from typing import List, Dict, Any
+import pandas as pd
+import os
 results = [
     {
         "sequence_id": "seqA",
@@ -51,55 +51,65 @@ def validate_results(results):
     """
     pass 
 
-def write_json(results, output_path):
+def write_json(results: List[Dict[str, Any]], output_path: str) -> None:
     """
-    Purpose:
-        Write results to a JSON file.
+    Write results to a JSON file.
 
-    Input: results (list[dict]): one dict per sequence. output_path (str): filename to write.
-
-    Output: writes a file
-
-    High-level steps:
-        1. Open output_path for writing.
-        2. Write results as a JSON list (pretty print optional).
-        3. Close the file.
+    Args:
+        results: A list of dictionaries, one per sequence.
+        output_path: The file path to save the JSON.
+    
     """
-    validate_results(results)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2)
+    if not results:
+        print("Warning: No results to write to JSON.")
+        return
+
+    # If provided a directory, append a default filename
+    if os.path.isdir(output_path):
+        output_path = os.path.join(output_path, "report.json")
+        print(f"Directory detected. Saving as: {output_path}")
+    
+    df= pd.DataFrame(results)
+    df.to_json(output_path, orient='records', indent = 4)
+    print(f"JSON report successfully saved to {output_path}")
         
 
 
 def write_csv(results, output_path):
     """
-    Purpose:
-        Write results to a CSV file.
+     Write results to a CSV file.
 
-    Input:
-        results (list[dict]): one dict per sequence.
-        output_path (str): filename to write.
-
-    Output:
-        None (writes a file)
-        
+    results: A list of dictionaries, one per sequence. output_path: The file path to save the CSV.      
     """
-    fieldnames = []
-    s = set()
+    if not results:
+        print("Warning: No results to write to CSV.")
+        return
+    
+    # If provided a directory, append a default filename
+    if os.path.isdir(output_path):
+        output_path = os.path.join(output_path, "report.csv")
+        print(f"Directory detected. Saving as: {output_path}")
 
-    for row in results:
-        for key in row.keys():
-            if key not in s:
-                s.add(key)
-                fieldnames.append(key)
+    df= pd.DataFrame(results)
+    
+    cols_order = [
+        "sequence_id", 
+        "frameshift_suspected", 
+        "frameshift_position", 
+        "shift_type", 
+        "dominance", 
+        "longest_orf_start", 
+        "longest_orf_end", 
+        "longest_orf_length_nt"
+    ]
 
-    # Write CSV
-    with open(output_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-
-        for row in results:
-            writer.writerow(row)
+    cols = list()
+    for c in cols_order:
+        if c in df.columns:
+            cols.append(c)
+    
+    df[cols].to_csv(output_path, index=False)
+    print(f"CSV report successfully saved to {output_path}")
 
 
 
