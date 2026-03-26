@@ -2,7 +2,7 @@
 #Mekhi Lucas
 import orf
 import fasta_io
-file = '../datasets/Covid_GCF_009858895.2/sample.fasta'
+file = '../datasets/Covid_GCF_009858895.2/sequence.fasta'
 '''
 Input:
 Using the longest sequence from the ORF function \
@@ -49,8 +49,8 @@ Return the site and type  (+1, +2) of the possible frameshift \
 #     }
 # ]
 
-first = fasta_io.read_fasta(file)
-seq = first[0]
+fasta_dict = fasta_io.read_fasta(file)
+seq = fasta_dict[0]['Sequence']
 
 print(seq)
 all_orfs = orf.detect_all_frames(seq)
@@ -95,7 +95,7 @@ def ORF_coverage_proportion(long_orf:dict, all_orfs:list[dict]) -> float :
     return long_orf
 
 
-def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15):
+def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 200):
     '''
     Purpose:
         Search all_orfs for an ORF in a different reading frame whose start
@@ -127,7 +127,7 @@ def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15)
         if long_orf['frame'] == orf['frame']:
             continue
         if end_pos - window <= orf['start'] <= end_pos + window:
-            return neighboring_orf
+            return orf
 
     return None
     
@@ -196,7 +196,7 @@ def build_frameshift_details(long_orf: dict, all_orfs: dict, neighboring_orf : d
     'neighboring_orf' : neighboring_orf 
 
     }
-    shift_data = shift_type()
+    shift_data = shift_type(long_orf, all_orfs)
 
     details['shift_type'] = shift_data[0]
     details['shift_magnitude'] = shift_data[1]
