@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
+from fasta_io import read_fasta
+from orf import detect_all_frames
+
 # Emory Foerster
 
 """
@@ -23,6 +27,23 @@ Outputs:
     - A CSV file summarizing the longest ORF and frameshift status per sequence.
 """
 
+def create_parser() -> argparse.ArgumentParser:
+    """
+    Create and configure the argument parser for the simulator.
+
+    Returns:
+        A configured ArgumentParser instance with all supported
+        command-line arguments.
+    """
+    parser = argparse.ArgumentParser(description="ORF detection with frameshift analysis.")
+
+    parser.add_argument("-f", "--fasta_file", type=str, help="Path to input Fasta file.")
+    parser.add_argument("-m", "--min_length", type=int, default=150, help="Minimum ORF length, default = 150.")
+    parser.add_argument("-o", "--output_csv", type=str, help="File name for new output CSV file.")
+
+    return parser
+
+
 def main():
     """
     Purpose:
@@ -43,7 +64,16 @@ def main():
     6. Calculate dominance metrics
     7. Write results to a CSV file
     """
-    pass
+    parser = create_parser()
+    args = parser.parse_args()
+
+    records = read_fasta(args.fasta_file)
+    seq = records[0]["Sequence"]
+
+    all_orfs = detect_all_frames(seq)
+    meaningful_orfs = detect_all_frames(seq, min_length=args.min_length)
+    print(meaningful_orfs)
+
 
 if __name__ == '__main__':
 	main()
