@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #Mekhi Lucas
+#from orf
 
-
+file = 'sample.fasta'
 '''
 Input:
 Using the longest sequence from the ORF function \
@@ -15,42 +16,42 @@ Output:
 Return that there is a possible frameshift at that site (True or False)\
 Return the site and type  (+1, +2) of the possible frameshift \
 '''
-all_orfs = [
-    {'ORF_1': 'seq',
-        'start': 10,
-        'end': 150,
-        'length': int(140),
-        'frame': 0
-    },
-    {'ORF_2': 2,
-        'start': 25,
-        'end': 380,
-        'length': int(355),
-        'frame': 1
-    },
-    {'ORF_3': 3,
-        'start': 5,
-        'end': 200,
-        'length': int(195),
-        'frame': 2
-    },
-    {'ORF_4': 4,
-        'start': 60,
-        'end': 500,
-        'length': int(440),
-        'frame': 0
-    },
-    {'ORF_5': 5,
-        'start': 120,
-        'end': 280,
-        'length': int(160),
-        'frame': 1
-    }
-]
+# all_orfs = [
+#     {'ORF_1': 'seq',
+#         'start': 10,
+#         'end': 150,
+#         'length': int(140),
+#         'frame': 0
+#     },
+#     {'ORF_2': 2,
+#         'start': 25,
+#         'end': 380,
+#         'length': int(355),
+#         'frame': 1
+#     },
+#     {'ORF_3': 3,
+#         'start': 5,
+#         'end': 200,
+#         'length': int(195),
+#         'frame': 2
+#     },
+#     {'ORF_4': 4,
+#         'start': 60,
+#         'end': 500,
+#         'length': int(440),
+#         'frame': 0
+#     },
+#     {'ORF_5': 5,
+#         'start': 120,
+#         'end': 280,
+#         'length': int(160),
+#         'frame': 1
+#     }
+# ]
 
 
 import sys
-print(type(all_orfs))
+
 def longest_orf(all_orfs: list):
     top = 0 
     longest = all_orfs[0]
@@ -84,17 +85,14 @@ def ORF_coverage_proportion(long_orf:dict, all_orfs:list[dict]) -> float :
     for orf in all_orfs:
         total += orf['length']
 
-
-    print(total)
     coverage_proportion = round(len_long_orf/ total, 3)
     long_orf['coverage_proportion'] = coverage_proportion
     return long_orf
 
-# print(ORF_coverage_proportion(longest_orf(all_orfs), all_orfs)) #just a test delete later
 
 def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15):
-  '''
-  Purpose:
+    '''
+    Purpose:
         Search all_orfs for an ORF in a different reading frame whose start
         position falls within a window of the longest ORF's end position,
         indicating a possible frameshift continuation.
@@ -116,15 +114,15 @@ def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15)
                long_orf["end"] ± window
             c. If yes, return that ORF dict immediately
         3. Return None if no neighboring ORF is found
-  '''
+    '''
     end_pos = long_orf['end']
     wrk_frame = long_orf['frame']
 
     for orf in all_orfs:
-        if long_orf['frame'] == all_orfs['frame']:
+        if long_orf['frame'] == orf['frame']:
             continue
-        if end_pos - window <= orf['start'] <= end_pos + window
-            return orf
+        if end_pos - window <= orf['start'] <= end_pos + window:
+            return neighboring_orf
 
     return None
     
@@ -134,55 +132,85 @@ def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 15)
 
 
     
-# def shift_type(long_orf:dict, all_orfs:list[dict]):
-#  '''
-#  Purpose:
-#         Determine the type and magnitude of the frameshift between the longest
-#         ORF and its neighboring ORF.
+def shift_type(long_orf:dict, all_orfs:list[dict]):
+    '''
+ Purpose:
+        Determine the type and magnitude of the frameshift between the longest
+        ORF and its neighboring ORF.
 
-#     Input:
-#         long_orf       (dict): The longest ORF dictionary
-#         neighboring_orf(dict): The neighboring ORF found by find_neighboring_orf
+    Input:
+        long_orf       (dict): The longest ORF dictionary
+        neighboring_orf(dict): The neighboring ORF found by find_neighboring_orf
 
-#     Output:
-#         A tuple containing:
-#             - shift_type      (str): The frameshift type as a string e.g. "+1" or "+2"
-#             - shift_magnitude (int): The raw integer shift value (1 or 2)
+    Output:
+        A tuple containing:
+            - shift_type      (str): The frameshift type as a string e.g. "+1" or "+2"
+            - shift_magnitude (int): The raw integer shift value (1 or 2)
 
-#     High-level steps:
-#         1. Subtract long_orf["frame"] from neighboring_orf["frame"]
-#         2. Apply modulo 3 to handle frame wraparound
-#         3. Format as a "+N" string for the shift_type
-#         4. Return both values as a tuple
-#  '''
+    High-level steps:
+        1. Subtract long_orf["frame"] from neighboring_orf["frame"]
+        2. Apply modulo 3 to handle frame wraparound
+        3. Format as a "+N" string for the shift_type
+        4. Return both values as a tuple
+    '''
+    neighbor = find_neighboring_orf(long_orf, all_orfs)
+
+    if neighbor is None:
+        return None
+
+    shift_magnitude = (neighbor['frame'] - long_orf['frame']) % 3
+    shift_str = '+' + str(shift_magnitude)
+
+    return (shift_str, shift_magnitude)
 
 
-# def build_frameshift_details(long_orf: dict, neighboring_orf: dict):
-#   """
-#     Purpose:
-#         Assemble the frameshift_details dictionary once a neighboring ORF
-#         has been confirmed, by combining the shift position, type, and
-#         neighboring ORF data into one structured output.
 
-#     Input:
-#         long_orf        (dict): The longest ORF dictionary
-#         neighboring_orf (dict): The neighboring ORF found by find_neighboring_orf
+def build_frameshift_details(long_orf: dict, all_orfs: dict, neighboring_orf : dict) -> dict:
+    """
+    Purpose:
+        Assemble the frameshift_details dictionary once a neighboring ORF
+        has been confirmed, by combining the shift position, type, and
+        neighboring ORF data into one structured output.
 
-#     Output:
-#         A dictionary containing:
-#             - "shift_position"   (int): long_orf end position as the approximate
-#                                         frameshift location
-#             - "neighboring_frame"(int): The frame of the neighboring ORF
-#             - "shift_type"       (str): "+1" or "+2"
-#             - "shift_magnitude"  (int): 1 or 2
-#             - "neighboring_orf"  (dict): The full neighboring ORF dict
+    Input:
+        long_orf        (dict): The longest ORF dictionary
+        neighboring_orf (dict): The neighboring ORF found by find_neighboring_orf
 
-#     High-level steps:
-#         1. Call calculate_shift_type to get shift_type and shift_magnitude
-#         2. Build and return the details dictionary using those values
-#            plus long_orf["end"] and neighboring_orf["frame"]
-#     """
-    
+    Output:
+        A dictionary containing:
+            - "shift_position"   (int): long_orf end position as the approximate
+                                        frameshift location
+            - "neighboring_frame"(int): The frame of the neighboring ORF
+            - "shift_type"       (str): "+1" or "+2"
+            - "shift_magnitude"  (int): 1 or 2
+            - "neighboring_orf"  (dict): The full neighboring ORF dict
+
+    High-level steps:
+        1. Call calculate_shift_type to get shift_type and shift_magnitude
+        2. Build and return the details dictionary using those values
+           plus long_orf["end"] and neighboring_orf["frame"]
+    """
+    details = {'shift_position': long_orf['end'] ,
+    'neighboring_frame': neighboring_orf['frame'],
+    'shift_type': None,
+    'shift_magnitude': None ,
+    'neighboring_orf' : neighboring_orf 
+
+    }
+    shift_data = shift_type()
+
+    details['shift_type'] = shift_data[0]
+    details['shift_magnitude'] = shift_data[1]
+
+    return details
+
+longest = longest_orf(all_orfs)
+print(longest)
+print(ORF_coverage_proportion(longest, all_orfs))
+neighbor1 = find_neighboring_orf(longest, all_orfs)
+print(find_neighboring_orf(longest, all_orfs))
+print(shift_type(longest, all_orfs))
+print(build_frameshift_details(longest, all_orfs, neighbor1))
 
 
 
