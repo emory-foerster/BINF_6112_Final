@@ -3,6 +3,8 @@
 import argparse
 from fasta_io import read_fasta
 from orf import detect_all_frames
+from frameshift import analyze_frameshift
+from report import produce_report
 
 # Emory Foerster
 
@@ -18,7 +20,7 @@ What this program will do (high level):
     3. Identify the longest ORF for each sequence.
     4. Analyze whether the longest ORF suggests a potential frameshift event.
     5. Compute a simple "dominance" metric for the longest ORF.
-    6. Write a summary report (CSV) with results for all sequences.
+    6. Write a summary report with results for all sequences.
 
 Inputs:
     - A FASTA file containing one or more nucleotide sequences.
@@ -39,8 +41,9 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("-f", "--fasta_file", type=str, help="Path to input Fasta file.")
     parser.add_argument("-m", "--min_length", type=int, default=150, help="Minimum ORF length, default = 150.")
-    parser.add_argument("-o", "--output_csv", type=str, help="File name for new output CSV file.")
-
+    parser.add_argument("-oc", "--output_csv", type=str, help="File name for new output CSV file.")
+    parser.add_argument("-oj", "--output_json", type=str, help="File name for new output JSON file.")
+    parser.add_argument("-oh", "--output_html", type=str, help="File name for new output html file.")
     return parser
 
 
