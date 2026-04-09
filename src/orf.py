@@ -21,7 +21,15 @@ def parse_codons(seq: str, frame:int) -> list[tuple[str, int]]:
             - only includes complete codons
         3. records each codon and its start index in the sequence
         4. returns list of tuples with codon + start index [("codon", start_index), ]
+    Raise Errors: 
+        ValueError: if sequence is empty or not a string type
+        ValueError: if frame is not 0,1 or 2
     """
+    if not seq or not isinstance(seq, str):
+        raise ValueError("Sequence must be a non-empty and of string type.")
+    if frame not in (0,1,2):
+        raise ValueError(f"Frame must be 0, 1, or 2. Frame is {frame}.")
+
     codons = []
     for i in range(frame, len(seq) -2, 3):
         codon = seq[i:i+3]
