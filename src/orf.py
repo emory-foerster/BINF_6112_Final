@@ -111,17 +111,6 @@ def detect_all_frames(seq: str, min_length: int = 0) -> list[dict]:
         ORFs.extend(orf)
     return ORFs
 
-def main():
-    record = read_fasta("../datasets/Covid_GCF_009858895.2/sample.fasta")
-    seq = record[0]["Sequence"]
-    all_orfs = detect_all_frames(seq)
-    meaningful_orfs = detect_all_frames(seq, min_length=150)
-    print(all_orfs)
-    
-
-
-if __name__ == '__main__':
-    main()
 
 
 
