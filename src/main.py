@@ -46,6 +46,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("-oc", "--output_csv", type=str, help="File name for new output CSV file.")
     parser.add_argument("-oj", "--output_json", type=str, help="File name for new output JSON file.")
     parser.add_argument("-oh", "--output_html", type=str, help="File name for new output html file.")
+    parser.add_argument("-d", "--output_dir", type=str, default="../examples", help="Directory to save output files.")
     return parser
 
 
@@ -103,7 +104,15 @@ def main():
 
          all_orfs = detect_all_frames(full_seq, min_length = args.min_length )
          
-         # need to add frameshift and report stuff. !!!
+        #need to add frameshift and report stuff. !!!
+        # report_engine= OrfReport(results,args.output_dir)
+        # # Produce requested reports
+        #if args.output_csv:
+        #    report_engine.produce_report("csv")
+        #if args.output_json:
+        #    report_engine.produce_report("json")
+        #if args.output_html:
+        #    report_engine.produce_report("html")
 
 
 if __name__ == '__main__':
