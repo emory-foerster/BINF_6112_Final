@@ -1,12 +1,50 @@
 [
-  {
-    "sequence_id": "seqA",
-    "frameshift_suspected": true,
-    "frameshift_position": 600,
-    "shift_type": "+1",
-    "dominance": 0.78,
-    "longest_orf_start": 120,
-    "longest_orf_end": 1320,
-    "longest_orf_length_nt": 1200
-  }
+    {
+        "seq":"ACTACTGAAGCTTCA...",
+        "start":265,
+        "end":13483,
+        "length":13218,
+        "frame":1,
+        "dominance_ratio":0.205,
+        "frameshift_boolean":true,
+        "frameshift_details":[
+            {
+                "shift_position":13310,
+                "neighboring_frame":2,
+                "shift_type":"+1",
+                "shift_magnitude":1,
+                "neighboring_orf":{
+                    "seq":"ACTGACTGACTG",
+                    "start":13310,
+                    "end":13466,
+                    "length":156,
+                    "frame":2
+                }
+            }
+        ]
+    },
+    {
+        "seq":"ACTACTGAAGCTTCA...",
+        "start":269,
+        "end":134483,
+        "length":13218,
+        "frame":1,
+        "dominance_ratio":0.2045,
+        "frameshift_boolean":false,
+        "frameshift_details":[
+            {
+                "shift_position":133210,
+                "neighboring_frame":4,
+                "shift_type":"+1",
+                "shift_magnitude":1,
+                "neighboring_orf":{
+                    "seq":"ACTGACTGACTGGC",
+                    "start":133130,
+                    "end":1344466,
+                    "length":13256,
+                    "frame":24
+                }
+            }
+        ]
+    }
 ]

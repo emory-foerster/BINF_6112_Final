@@ -4,182 +4,248 @@ from typing import List, Dict, Any
 import pandas as pd
 import os
 import plotly.graph_objects as go 
+import sys
 results = [
-    {
-        "sequence_id": "seqA",
-        "frameshift_suspected": True,
-        "frameshift_position": 600,
+  {
+    "seq": "ACTACTGAAGCTTCA...",
+    "start": 265,
+    "end": 13483,
+    "length": 19218,
+    "frame": 1,
+    "dominance_ratio": 0.205,
+    "frameshift_boolean": True,
+    "frameshift_details": [
+      {
+        "shift_position": 13310,
+        "neighboring_frame": 2,
         "shift_type": "+1",
-        "dominance": 0.78,
-        "longest_orf_start": 120,
-        "longest_orf_end": 1320,
-        "longest_orf_length_nt": 1200
-    }
+        "shift_magnitude": 1,
+        "neighboring_orf": {
+          "seq": "ACTGACTGACTG",
+          "start": 13310,
+          "end": 13466,
+          "length": 156,
+          "frame": 2
+        }
+      }
+    ]
+  },
+  {
+    "seq": "ACTACTGAAGCTTCA...",
+    "start": 269,
+    "end": 134483,
+    "length": 99218,
+    "frame": 1,
+    "dominance_ratio": 0.2045,
+    "frameshift_boolean": False,
+    "frameshift_details": [
+      {
+        "shift_position": 133210,
+        "neighboring_frame": 4,
+        "shift_type": "+1",
+        "shift_magnitude": 1,
+        "neighboring_orf": {
+          "seq": "ACTGACTGACTGGC",
+          "start": 133130,
+          "end": 1344466,
+          "length": 13256,
+          "frame": 24
+        }
+      }
+    ]
+  }
 ]
 
-"""
-report.py
-
-Writes the final results to an output file.
-Supports CSV or JSON output, based on the user's chosen format.
-Used as the last step of the pipeline called by main.py.
-
-# RESEARCH: 
-We want this script to have an output that visualizes where the frameshifts occur and give a summary of the location
-and type of possible frameshift. 
-- research areas: how to produced visualize and formatted output. 
-
-Ideas from research: good article https://www.biorxiv.org/content/10.1101/2021.06.10.447953v2.full
-
-I think we should use Plotly and Dash to create an html as an output which displays:
--type of frameshift (+1, +2) vs. length of ORF (similar to Figure 2)
--Longest ORF proportion of the whole sequence (visual and/or percentage)
--A frameshift bar with highlighted areas of frameshift potential spots(also starting their position)
--display in someway the read depth and coverage of longest ORF
--JSON summary
-
-"""
-
-def validate_results(results):
+class OrfReport:
     """
+    Generate output files (JSON, CSV, HTML) from ORF + frameshift results.
+
     Purpose:
-        Ensure results is in the expected shape before writing any output.
-    High-level steps:
-        1. Check results is a list.
-        2. Check each item is a dictionary.
-        3. Optionally check required keys exist (sequence_id, longest_orf fields, frameshift fields).
-        4. If checks fail, raise ValueError with a clear message.
-    """
-    pass 
+        Take analysis results and write them to one or more report formats.
 
-def write_json(results: List[Dict[str, Any]], output_path: str) -> None:
-    """
-    Write results to a JSON file.
+    Input:
+        results (List[Dict[str, Any]]): list of per-sequence result dictionaries.
+        output_dir (str): directory where report files will be saved.
 
-    Args:
-        results: A list of dictionaries, one per sequence.
-        output_path: The file path to save the JSON.
-    
+    Output:
+        Report files produced
     """
-    if not results:
-        print("Warning: No results to write to JSON.")
-        return
 
-    # If provided a directory, append a default filename
-    if os.path.isdir(output_path):
-        output_path = os.path.join(output_path, "report.json")
-        print(f"Directory detected. Saving as: {output_path}")
-    
-    df= pd.DataFrame(results)
-    df.to_json(output_path, orient='records', indent = 4)
-    print(f"JSON report successfully saved to {output_path}")
+    def __init__(self, results: List[Dict[str, Any]], output_dir: str = ".") -> None:
+        """
+        Initialize the report generator.
+
+        Purpose: Initializes the report with raw result data.
+
+        Inputs:
+            results: list of per-sequence result dictionaries.
+            output_dir: folder to write report files into.
+
+        High-level steps:
+            1. Store results in self.results.
+            2. Store output_dir in self.output_dir.
+            3. Create output_dir if it does not exist.
+        """
+        self.results = results
+        self.output_dir = output_dir
+
+        if not os.path.isdir(self.output_dir):
+            os.makedirs(self.output_dir, exist_ok=True)
+
+    def write_json(self, filename: str = "report.json") -> None:
+        """
+        Purpose: Write results to a JSON file.
+
+        Input:
+           file name(str): file name default report.json.
+
+        Output: JSON file.
+
+        High-level steps:
+            1. If results is empty, warn and stop.
+            2. append the filename to self.output_dir
+            3. Write the results list to JSON using pandas. 
+    """
+        if not self.results:
+            sys.stderr.write("Warning: No results to write to JSON.")
+            return
+
+        output_path = os.path.join(self.output_dir, filename)
+        
+        df= pd.DataFrame(self.results)
+        df.to_json(output_path, orient='records', indent = 4)
+        print(f"JSON report successfully saved to {output_path}")
         
 
 
-def write_csv(results, output_path):
-    """
-     Write results to a CSV file.
+    def write_csv(self, filename: str = "report.csv") -> None:
+        """
+        Purpose: Write results to a CSV file.
 
-    results: A list of dictionaries, one per sequence. output_path: The file path to save the CSV.      
-    """
-    if not results:
-        print("Warning: No results to write to CSV.")
-        return
-    
-    # If provided a directory, append a default filename
-    if os.path.isdir(output_path):
-        output_path = os.path.join(output_path, "report.csv")
-        print(f"Directory detected. Saving as: {output_path}")
+        Input:
+           file name(str): file name default report.csv.
 
-    df= pd.DataFrame(results)
-    
-    cols_order = [
-        "sequence_id", 
-        "frameshift_suspected", 
-        "frameshift_position", 
-        "shift_type", 
-        "dominance", 
-        "longest_orf_start", 
-        "longest_orf_end", 
-        "longest_orf_length_nt"
-    ]
+        Output: CSV file.
 
-    cols = list()
-    for c in cols_order:
-        if c in df.columns:
-            cols.append(c)
-    
-    df[cols].to_csv(output_path, index=False)
-    print(f"CSV report successfully saved to {output_path}")
+        High-level steps:
+            1. If results is empty, warn and stop.
+            2. append the filename to self.output_dir
+            3. Extract the info from self.results and build the structure of
+            4. Write the results list to JSON using pandas.     
+        """
+        if not self.results:
+            sys.stderr.write("No results to write to CSV.\n")
+            return
+        
+        output_path = os.path.join(self.output_dir, filename)
+        
+        rows = []
+        for res in self.results:
+            # Extract primary shift info if it exists
+            details = res.get("frameshift_details", [])
+            primary = details[0] if details else {}
+            neighbor = primary.get("neighboring_orf", {})
 
+            row = {
+                "sequence_id": res.get("sequence_id"),
+                "frameshift_suspected": res.get("frameshift_boolean"),
+                "frameshift_position": primary.get("shift_position"),
+                "shift_type": primary.get("shift_type"),
+                "dominance": res.get("dominance_ratio"),
+                "longest_orf_start": res.get("start"),
+                "longest_orf_end": res.get("end"),
+                "longest_orf_length_nt": res.get("length"),
+                "overlap_length": neighbor.get("length")
+            }
+            rows.append(row)
 
+        df= pd.DataFrame(rows)
 
+        cols_order = [
+            "sequence_id", "frameshift_suspected", "frameshift_position", 
+            "shift_type", "dominance", "longest_orf_start", 
+            "longest_orf_end", "longest_orf_length_nt", "overlap_length"
+        ]
 
-
-def write_html(results, output_path):
-    """
-    Purpose:
-        Write an HTML report for all sequences. 
-    Args:
-        results: List of dictionaries containing ORF and frameshift data.
-        output_path: The file path to save the HTML dashboard.
-    """
-    if not results:
-        print("Warning: No results available to visualize.")
-        return
-    
-    df = pd.DataFrame(results)
-    fig = go.Figure()
-
-    for i, row in df.iterrows():
-        # 1. Add the Sequence Backbone (Total length)
-        # We use the index 'i' as the y-coordinate to stack them
-        fig.add_trace(go.Bar(
-            x=[row.get('full_seq_length', row['longest_orf_end'] + 100)],
-            y=[row['sequence_id']],
-            orientation='h',
-            marker_color='lightgrey',
-            hoverinfo='skip',
-            showlegend=False
-        ))
-    
-    # Add the Longest ORF (Green)
-        fig.add_trace(go.Bar(
-        x=[row['longest_orf_length_nt']],
-        y=[row['sequence_id']],
-        base=row['longest_orf_start'], 
-        orientation='h',
-        name="Longest ORF",
-        marker_color='mediumseagreen',
-        hovertemplate=f"Start: {row['longest_orf_start']}<br>End: {row['longest_orf_end']}<extra></extra>"
-    ))
-
-    fig.write_html(output_path)
-    print(f"HTML report successfully saved to {output_path}")
+        cols = [c for c in cols_order if c in df.columns]
+        
+        df[cols].to_csv(output_path, index=False)
+        print(f"CSV report successfully saved to {output_path}")
 
 
-def produce_report(results, output_path, output_format):
-    """
-    Purpose:
-        Main entry point used by main.py to write outputs.
+    def write_html(self, filename: str = "report.html"):
+        """
+        Purpose:
+            Write an HTML report for all sequences. 
+        Args:
+            results: List of dictionaries containing ORF and frameshift data.
+            output_path: The file path to save the HTML dashboard.
+        """
+        if not self.results:
+            return
 
-    Input:
-        output_format (str): "json", "csv", or "html".
+        fig = go.Figure()
 
-    Output: writes a file
+        # Iterate through each processed sequence
+        for res in self.results:
+            seq_id = res.get("sequence_id", "Unknown")
+            full_len = res.get("full_seq_length", res.get("end", 0) + 100)
+            
+            # 1. Draw the Full Sequence Backbone
+            fig.add_trace(go.Bar(
+                x=[full_len],
+                y=[seq_id],
+                orientation='h',
+                marker_color='rgba(211, 211, 211, 0.3)', # Light Gray
+                hoverinfo='skip',
+                showlegend=False
+            ))
 
-    High-level steps:
-        - If format is json -> call write_json().
-        - If format is csv -> call write_csv().
-        - If format is html -> call write_html().
-        - Otherwise raise ValueError for unsupported format.
-    """
-    fmt = output_format.strip().lower()
+            # 2. Draw the Longest ORF (The primary gene)
+            fig.add_trace(go.Bar(
+                x=[res.get("length")],
+                y=[seq_id],
+                base=res.get("start"),
+                orientation='h',
+                name=f"Main ORF ({seq_id})",
+                marker_color='mediumseagreen',
+                hovertemplate=(
+                    f"<b>Primary ORF</b><br>"
+                    f"Coords: {res.get('start')} - {res.get('end')}<br>"
+                    f"Length: {res.get('length')}nt<extra></extra>"
+                )
+            ))
 
-    if fmt == "json":
-        write_json(results, output_path)
-    elif fmt == "csv":
-        write_csv(results, output_path)
-    elif fmt == "html":
-        write_html(results, output_path)
-produce_report(results,"./report.html","html")
+
+        output_path = os.path.join(self.output_dir, filename)
+        fig.write_html(output_path)
+        print(f"Interactive HTML dashboard successfully saved to {output_path}")
+
+
+    def produce_report(self, output_format: str) -> None:
+        """
+        Purpose: Main entry point used by main.py to write outputs.
+
+        Input: output_format (str): "json", "csv", or "html".
+
+        Output: writes a file
+
+        High-level steps:
+            - If format is json -> call write_json().
+            - If format is csv -> call write_csv().
+            - If format is html -> call write_html().
+            - Otherwise raise ValueError for unsupported format.
+        """
+        fmt = output_format.strip().lower()
+
+        if fmt == "json":
+            self.write_json()
+        elif fmt == "csv":
+            self.write_csv()
+        elif fmt == "html":
+            self.write_html()
+        else:
+            sys.stderr.write(f"Unsupported report format: '{output_format}'.Please use 'json', 'csv', or 'html'.")
+
+report1= OrfReport(results,"../examples")
+report1.produce_report('csv')
