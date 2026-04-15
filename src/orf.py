@@ -108,19 +108,3 @@ def reverse_complement(seq: str) -> str:
     complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
     return ''.join(complement[b] for b in reversed(seq))
 
-
-def main():
-    record = read_fasta('../datasets/Covid_GCF_009858895.2/sequence.fasta')
-    seq = record[0]["Sequence"]
-    all_orfs = detect_all_frames(seq, min_length=30)
-    meaningful_orfs = detect_all_frames(seq, min_length=150)
-    print(all_orfs)
-    print(len(all_orfs))
-    
-
-
-if __name__ == '__main__':
-    main()
-
-
-
