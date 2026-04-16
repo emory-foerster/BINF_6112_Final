@@ -1,14 +1,28 @@
 [
     {
-        "seq":"ATGGCCACCAGCTCCTTTATTACCGTTCTTACGAAGAAGAACCTTGCGGTAAGCCACTGGTATTTCGCCCACATGAGGGACAAGGACACCAAGTGTCTCACCACTACGACCGTACTGAATGCCTTCGAGTTCTGCTACCAGCTCAACCATAACATGACCATGAGGTGCAGTTCGAGCATCCGAACGTTTGATGAACACATAGGGCTGTTCAAGTTGAGGCAAAACGCCTTTTTCAACTTCTACTAA",
-        "start":53,
-        "end":299,
-        "length":246,
-        "frame":2,
-        "dominance_ratio":1.0,
-        "frameshift_boolean":false,
-        "frameshift_details":null,
+        "seq":"ATGGAGAGCC",
+        "start":265,
+        "end":13483,
+        "length":13218,
+        "frame":1,
+        "dominance_ratio":0.368,
+        "frameshift_boolean":true,
+        "frameshift_details":[
+            {
+                "shift_position":13310,
+                "neighboring_frame":2,
+                "shift_type":"+1",
+                "shift_magnitude":1,
+                "neighboring_orf":{
+                    "seq":"ATGTACAAATACCTACAACTTGTGCTAATGACCCTGTGGGTTTTACACTTAAAAACACAGTCTGTACCGTCTGCGGTATGTGGAAAGGTTATGGCTGTAGTTGTGATCAACTCCGCGAACCCATGCTTCAGTCAGCTGATGCACAATCGTTTTTAA",
+                    "start":13310,
+                    "end":13466,
+                    "length":156,
+                    "frame":2
+                }
+            }
+        ],
         "sequence_id":"NC_045512.2",
-        "full_seq_length":720
+        "full_seq_length":29903
     }
 ]

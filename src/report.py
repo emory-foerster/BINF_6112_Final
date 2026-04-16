@@ -64,6 +64,7 @@ class OrfReport:
         output_path = os.path.join(self.output_dir, filename)
         
         df= pd.DataFrame(self.results)
+        df['seq'] = df['seq'].str[:10]
         df.to_json(output_path, orient='records', indent = 4)
         print(f"JSON report successfully saved to {output_path}")
         
