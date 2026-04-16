@@ -119,7 +119,7 @@ def main():
          sys.stdout.write(f"Processed seq_id: {seq_id}\n")
          
     if final_results:
-        # Pass the FULL LIST of results to the engine
+        # Pass the list of results to the engine
         report_engine = OrfReport(final_results, args.output_dir)
         
         if args.output_csv:
