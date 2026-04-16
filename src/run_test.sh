@@ -1,4 +1,11 @@
 #!/bin/bash
+#SBATCH --job-name=frame_report
+#SBATCH --partition=Centaurus
+#SBATCH --cpus-per-task=8
+#SBATCH --time=10:30:00
+#SBATCH --mem-per-cpu=2G
+#SBATCH --output=job_%j.log
+
 
 # run_test.sh - Automated Pipeline Validation
 echo "Starting ORF-Frameshift Pipeline Test..."
