@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 #Mekhi Lucas
 import orf
+import sys
 import fasta_io
+
 file = '../datasets/Covid_GCF_009858895.2/sequence.fasta'
 '''
 Input:
@@ -16,241 +18,249 @@ Output:
 Return that there is a possible frameshift at that site (True or False)\
 Return the site and type  (+1, +2) of the possible frameshift \
 '''
-# all_orfs = [
-#     {'ORF_1': 'seq',
-#         'start': 10,
-#         'end': 150,
-#         'length': int(140),
-#         'frame': 0
-#     },
-#     {'ORF_2': 2,
-#         'start': 25,
-#         'end': 380,
-#         'length': int(355),
-#         'frame': 1
-#     },
-#     {'ORF_3': 3,
-#         'start': 5,
-#         'end': 200,
-#         'length': int(195),
-#         'frame': 2
-#     },
-#     {'ORF_4': 4,
-#         'start': 60,
-#         'end': 500,
-#         'length': int(440),
-#         'frame': 0
-#     },
-#     {'ORF_5': 5,
-#         'start': 120,
-#         'end': 280,
-#         'length': int(160),
-#         'frame': 1
-#     }
-# ]
-
-fasta_dict = fasta_io.read_fasta(file)
-seq = fasta_dict[0]['Sequence']
-
-print(seq)
-all_orfs = orf.detect_all_frames(seq)
-print(all_orfs)
-import sys
-
-def longest_orf(all_orfs: list):
-    top = 0 
-    longest = all_orfs[0]
-    for orf in all_orfs:
-            if orf['length'] > longest['length']:
-                longest = orf
-    return longest
 
 
-
-def ORF_coverage_proportion(long_orf:dict, all_orfs:list[dict]) -> float :
+class FrameshiftDetector:
     '''
     Purpose:
-        Calculate how dominant the longest ORF is relative to all ORFs found.
+        All frameshift detection logic for a set of ORFs.
+        Stores all_orfs and window as instance attributes so helper
+        methods do not need them passed on every call.
 
     Input:
-        long_orf  (dict):       The longest ORF dictionary from detect_ORF
-        all_orfs  (list[dict]): All ORFs found across all three reading frames
+        all_orfs (list[dict]): All ORFs found across all reading frames
+        window   (int):        Nucleotide window to search around an ORF's
+                               end position when looking for neighbors —
+                               default is 200
 
-    Output:
-        float: The longest ORF length divided by total nucleotides across all ORFs
-
-    High-level steps:
-        1. Sum the "length" value across every dict in all_orfs
-        2. Divide long_orf["length"] by that total
+    Usage:
+        detector = FrameshiftDetector(all_orfs, window=200)
+        long_orf = detector.longest_orf()
+        result   = detector.analyze(long_orf)
     '''
-    len_long_orf = long_orf['length']
-    frame = long_orf['frame']
-    total = 0
 
-    for orf in all_orfs:
-        total += orf['length']
+    def __init__(self, all_orfs: list[dict], window: int = 200):
+        self.all_orfs = all_orfs
+        self.window   = window
 
-    coverage_proportion = round(len_long_orf/ total, 3)
-    long_orf['coverage_proportion'] = coverage_proportion
-    return long_orf
+    def longest_orf(self) -> dict:
+        '''
+        Purpose:
+            Find and return the longest ORF in self.all_orfs by length.
+
+        Input:
+            self
+
+        Output:
+            dict: The ORF dictionary with the greatest "length" value
+
+        High-level steps:
+            1. Initialize longest to the first ORF in self.all_orfs
+            2. Iterate through all ORFs
+            3. Update longest whenever a greater length is found
+            4. Return longest
+        '''
+        longest = self.all_orfs[0]
+        for o in self.all_orfs:
+            if o['length'] > longest['length']:
+                longest = o
+        return longest
+
+    def orf_coverage_proportion(self, long_orf: dict) -> float:
+        '''
+        Purpose:
+            Calculate how dominant the longest ORF is relative to all ORFs
+            found, as a proportion of total nucleotides across all ORFs.
+
+        Input:
+            long_orf (dict): The longest ORF dictionary
+            self
+
+        Output:
+            float: long_orf length divided by total nucleotides across all ORFs
+
+        High-level steps:
+            1. Sum the "length" value across every dict in self.all_orfs
+            2. Divide long_orf["length"] by that total
+            3. Return the rounded proportion
+        '''
+        total = 0
+        for o in self.all_orfs:
+            total += o['length']
+        return round(long_orf['length'] / total, 3)
+
+    def find_neighboring_orfs(self, long_orf: dict) -> list:
+        '''
+        Purpose:
+            Search self.all_orfs for ORFs in a different reading frame whose
+            start position falls within self.window of the longest ORF's end
+            position, indicating possible frameshift continuations.
+
+        Input:
+            long_orf (dict): The longest ORF dictionary
+            self
+
+        Output:
+            A list of dicts, each being a neighboring ORF in a different frame
+            whose start falls within self.window nucleotides of long_orf end —
+            empty list if none found
+
+        High-level steps:
+            1. Get long_orf["end"] and long_orf["frame"] as reference points
+            2. Iterate through self.all_orfs
+                a. Skip any ORF that shares the same frame as long_orf
+                b. Check if the candidate ORF's start falls within
+                   long_orf["end"] ± self.window
+                c. If yes, append that ORF dict to the neighbors list
+            3. Return the neighbors list (empty if none found)
+        '''
+        end_pos   = long_orf['end']
+        neighbors = []
+
+        for o in self.all_orfs:
+            if o['frame'] == long_orf['frame']:
+                continue
+            if end_pos - self.window <= o['start'] <= end_pos + self.window:
+                neighbors.append(o)
+
+        return neighbors
+
+    def shift_type(self, long_orf: dict) -> list:
+        '''
+        Purpose:
+            Determine the type and magnitude of the frameshift between the
+            longest ORF and each of its neighboring ORFs.
+
+        Input:
+            long_orf (dict): The longest ORF dictionary
+            self
+
+        Output:
+            A list of tuples, one per neighboring ORF, each containing:
+                - shift_type      (str): Frameshift type as a string e.g. "+1" or "+2"
+                - shift_magnitude (int): Raw integer shift value (1 or 2)
+            Returns None if no neighboring ORFs are found
+
+        High-level steps:
+            1. Call find_neighboring_orfs to get all neighboring ORFs
+            2. If no neighbors found, return None
+            3. For each neighbor, subtract long_orf["frame"] from neighbor["frame"]
+            4. Apply modulo 3 to handle frame wraparound
+            5. Format as a "+N" string for shift_type
+            6. Append (shift_str, shift_magnitude) tuple to shifts list
+            7. Return shifts list
+        '''
+        neighbors = self.find_neighboring_orfs(long_orf)
+
+        if not neighbors:
+            return None
+
+        shifts = []
+        for neighbor in neighbors:
+            shift_magnitude = (neighbor['frame'] - long_orf['frame']) % 3
+            shift_str       = '+' + str(shift_magnitude)
+            shifts.append((shift_str, shift_magnitude))
+
+        return shifts
+
+    def build_frameshift_details(self, long_orf: dict, neighboring_orfs: list[dict]) -> list[dict]:
+        """
+        Purpose:
+            Assemble a list of frameshift detail dicts, one per neighboring ORF,
+            combining the shift position, type, and neighboring ORF data into
+            structured output.
+
+        Input:
+            long_orf         (dict):       The longest ORF dictionary
+            neighboring_orfs (list[dict]): Neighboring ORFs from find_neighboring_orfs
+            self
+
+        Output:
+            A list of dicts, one per neighboring ORF, each containing:
+                - "shift_position"   (int):  The neighboring ORF's start position
+                - "neighboring_frame"(int):  The frame of the neighboring ORF
+                - "shift_type"       (str):  "+1" or "+2"
+                - "shift_magnitude"  (int):  1 or 2
+                - "neighboring_orf"  (dict): The full neighboring ORF dict
+
+        High-level steps:
+            1. Call shift_type to get a list of (shift_str, shift_magnitude) tuples
+            2. Zip neighboring_orfs with shift_data
+            3. For each (neighbor, shift) pair, build a details dict
+            4. Append each details dict to details_list
+            5. Return details_list
+        """
+        shift_data   = self.shift_type(long_orf)
+        details_list = []
+
+        for neighbor, (shift_str, shift_magnitude) in zip(neighboring_orfs, shift_data):
+            details = {
+                'shift_position'   : neighbor['start'],
+                'neighboring_frame': neighbor['frame'],
+                'shift_type'       : shift_str,
+                'shift_magnitude'  : shift_magnitude,
+                'neighboring_orf'  : neighbor
+            }
+            details_list.append(details)
+
+        return details_list
+
+    def analyze(self, long_orf: dict) -> dict:
+        '''
+        Purpose:
+            Orchestrate the full frameshift analysis of the longest ORF by
+            calling each helper method and assembling the final result.
+
+        Input:
+            long_orf (dict): The longest ORF dictionary from longest_orf()
+            self
+
+        Output:
+            The long_orf dictionary with three keys added:
+                - "dominance_ratio"    (float):      Proportion of total ORF
+                                                     nucleotides in this ORF
+                - "frameshift_boolean" (bool):       True if neighboring ORFs found
+                - "frameshift_details" (list[dict]): One detail dict per frameshift
+                                                     candidate, or None if none found
+
+        High-level steps:
+            1. Validate long_orf is not empty — raise ValueError if it is
+            2. Call orf_coverage_proportion and store as dominance_ratio
+            3. Call find_neighboring_orfs to get all frameshift candidates
+            4. If neighboring ORFs are found:
+                a. Set frameshift_flag to True
+                b. Call build_frameshift_details to assemble list of frameshift_details
+            5. If no neighboring ORFs are found:
+                a. Set frameshift_boolean to False
+                b. Set frameshift_details to None
+            6. Add dominance_ratio, frameshift_boolean, and frameshift_details
+               to long_orf and return it
+        '''
+        if not long_orf:
+            raise ValueError("long_orf is empty")
+
+        neighboring_orfs = self.find_neighboring_orfs(long_orf)
+
+        if neighboring_orfs:
+            is_frameshift      = True
+            frameshift_details = self.build_frameshift_details(long_orf, neighboring_orfs)
+        else:
+            is_frameshift      = False
+            frameshift_details = None
+
+        long_orf['dominance_ratio']    = self.orf_coverage_proportion(long_orf)
+        long_orf['frameshift_boolean'] = is_frameshift
+        long_orf['frameshift_details'] = frameshift_details
+
+        return long_orf
 
 
-def find_neighboring_orf(long_orf: dict, all_orfs: list[dict], window: int = 200):
-    '''
-    Purpose:
-        Search all_orfs for an ORF in a different reading frame whose start
-        position falls within a window of the longest ORF's end position,
-        indicating a possible frameshift continuation.
+if __name__ == '__main__':
+    fasta_dict = fasta_io.read_fasta(file)
+    seq        = fasta_dict[0]['Sequence']
+    all_orfs   = orf.detect_all_frames(seq)
 
-    Input:
-        long_orf  (dict):       The longest ORF dictionary
-        all_orfs  (list[dict]): All ORFs found across all three reading frames
-        window    (int):        Nucleotide window to search around long_orf end
-                                position — default is 15
-
-    Output:
-        A dictionary of the neighboring ORF if one is found, or None if not
-
-    High-level steps:
-        1. Get long_orf["end"] and long_orf["frame"] as reference points
-        2. Iterate through all_orfs
-            a. Skip any ORF that shares the same frame as long_orf
-            b. Check if the candidate ORF's start falls within
-               long_orf["end"] ± window
-            c. If yes, return that ORF dict immediately
-        3. Return None if no neighboring ORF is found
-    '''
-    end_pos = long_orf['end']
-    wrk_frame = long_orf['frame']
-
-    for orf in all_orfs:
-        if long_orf['frame'] == orf['frame']:
-            continue
-        if end_pos - window <= orf['start'] <= end_pos + window:
-            return orf
-
-    return None
-    
-def shift_type(long_orf:dict, all_orfs:list[dict]):
-    '''
- Purpose:
-        Determine the type and magnitude of the frameshift between the longest
-        ORF and its neighboring ORF.
-
-    Input:
-        long_orf       (dict): The longest ORF dictionary
-        neighboring_orf(dict): The neighboring ORF found by find_neighboring_orf
-
-    Output:
-        A tuple containing:
-            - shift_type      (str): The frameshift type as a string e.g. "+1" or "+2"
-            - shift_magnitude (int): The raw integer shift value (1 or 2)
-
-    High-level steps:
-        1. Subtract long_orf["frame"] from neighboring_orf["frame"]
-        2. Apply modulo 3 to handle frame wraparound
-        3. Format as a "+N" string for the shift_type
-        4. Return both values as a tuple
-    '''
-    neighbor = find_neighboring_orf(long_orf, all_orfs)
-
-    if neighbor is None:
-        return None
-
-    shift_magnitude = (neighbor['frame'] - long_orf['frame']) % 3
-    shift_str = '+' + str(shift_magnitude)
-
-    return (shift_str, shift_magnitude)
-
-
-
-def build_frameshift_details(long_orf: dict, all_orfs: dict, neighboring_orf : dict) -> dict:
-    """
-    Purpose:
-        Assemble the frameshift_details dictionary once a neighboring ORF
-        has been confirmed, by combining the shift position, type, and
-        neighboring ORF data into one structured output.
-
-    Input:
-        long_orf        (dict): The longest ORF dictionary
-        neighboring_orf (dict): The neighboring ORF found by find_neighboring_orf
-
-    Output:
-        A dictionary containing:
-            - "shift_position"   (int): long_orf end position as the approximate
-                                        frameshift location
-            - "neighboring_frame"(int): The frame of the neighboring ORF
-            - "shift_type"       (str): "+1" or "+2"
-            - "shift_magnitude"  (int): 1 or 2
-            - "neighboring_orf"  (dict): The full neighboring ORF dict
-
-    High-level steps:
-        1. Call calculate_shift_type to get shift_type and shift_magnitude
-        2. Build and return the details dictionary using those values
-           plus long_orf["end"] and neighboring_orf["frame"]
-    """
-    details = {'shift_position': long_orf['end'] ,
-    'neighboring_frame': neighboring_orf['frame'],
-    'shift_type': None,
-    'shift_magnitude': None ,
-    'neighboring_orf' : neighboring_orf 
-
-    }
-    shift_data = shift_type(long_orf, all_orfs)
-
-    details['shift_type'] = shift_data[0]
-    details['shift_magnitude'] = shift_data[1]
-
-    return details
-
-longest = longest_orf(all_orfs)
-print(longest)
-print(ORF_coverage_proportion(longest, all_orfs))
-neighbor1 = find_neighboring_orf(longest, all_orfs)
-print(find_neighboring_orf(longest, all_orfs))
-print(shift_type(longest, all_orfs))
-print(build_frameshift_details(longest, all_orfs, neighbor1))
-
-
-
-# def frameshift_detector_longest_ORF(long_orf: dict, all_orfs: list[dict]):
-#   '''
-#    Purpose:
-#         Orchestrate the full frameshift analysis of the longest ORF by calling
-#         each modular helper function and assembling the final result.
-
-#     Input:
-#         long_orf  (dict):       The longest ORF dictionary from detect_ORF
-#         all_orfs  (list[dict]): All ORFs found across all three reading frames
-
-#     Output:
-#         The long_orf dictionary gets:
-#             - dominance_ratio
-#             - frameshift_boolean
-#             - frameshift_details (type)
-
-#     High-level steps:
-#         1. Validate long_orf is not empty — raise ValueError if it is
-#         2. Call calculate_dominance_ratio and store the result
-#         3. Call find_neighboring_orf to search for a frameshift candidate
-#         4. If a neighboring ORF is found:
-#             a. Set frameshift_flag to True
-#             b. Call build_frameshift_details to assemble frameshift_details
-#         5. If no neighboring ORF is found:
-#             a. Set frameshift_boolean to False
-#             b. Set frameshift_details to None
-#         6. Add dominance_ratio, frameshift_flag, and frameshift_details
-#            to long_orf and return it
-
-#   '''
-
-# def Frame_detect(ORF, threshold):
-#   #detection across all open reading frames maybe
-    
-
-
-# if __name__ == '__main__':
-#   main()
-
-
-
+    detector = FrameshiftDetector(all_orfs, window=200)
+    long_orf = detector.longest_orf()
+    result   = detector.analyze(long_orf)
+    print(result)

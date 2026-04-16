@@ -103,14 +103,18 @@ def detect_all_frames(seq: str, min_length: int = 0) -> list[dict]:
         3. Return the combines list
     """
     ORFs = []
-    for i in range(3):
-        codon_list = parse_codons(seq,i)
-        orf = detect_ORF(codon_list, i)
-        if min_length > 0:
-            orf = [o for o in orf if o['length']>= min_length]
-        ORFs.extend(orf)
+    for strand_seq, strand_label in [(seq, '+'),(reverse_complement(seq), '-')]:
+        for i in range(3):
+            codon_list = parse_codons(strand_seq, i)
+            orf = detect_ORF(codon_list, i)
+            if min_length > 0:
+                orf = [o for o in orf if o['length'] - 3 >= min_length]
+            ORFs.extend(orf)
     return ORFs
 
 
+def reverse_complement(seq: str) -> str:
+    complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
+    return ''.join(complement[b] for b in reversed(seq))
 
 

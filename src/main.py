@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-
+from typing import List, Dict, Any
+import pandas as pd
+import plotly.graph_objects as go 
 import argparse
 from fasta_io import read_fasta
 import sys
 import os 
 from orf import detect_all_frames
-#from frameshift import analyze_frameshift
-from report import produce_report
+from frameshift import FrameshiftDetector
+from report import OrfReport
 
 # Emory Foerster
+# Runo Siakpebru
 
 """
 main.py
@@ -46,6 +49,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("-oc", "--output_csv", type=str, help="File name for new output CSV file.")
     parser.add_argument("-oj", "--output_json", type=str, help="File name for new output JSON file.")
     parser.add_argument("-oh", "--output_html", type=str, help="File name for new output html file.")
+    parser.add_argument("-d", "--output_dir", type=str, default="../examples", help="Directory to save output files.")
     return parser
 
 
@@ -95,15 +99,37 @@ def main():
     records = read_fasta(args.fasta_file)
     sys.stdout.write(f"Loaded {len(records)} sequences from {args.fasta_file}.\n")
 
+    final_results = []
+
     for record in records:
          seq_id = record["ID"]
          full_seq = record["Sequence"]
          seq_len = len(full_seq)
-         print(f"seq_id:{seq_id}")
 
          all_orfs = detect_all_frames(full_seq, min_length = args.min_length )
+         if not all_orfs:
+             continue
+         detector = FrameshiftDetector(all_orfs, window=200)
+         long_orf = detector.longest_orf()
+         result   = detector.analyze(long_orf)
+         result["sequence_id"] = seq_id
+         result["full_seq_length"] = seq_len
          
-         # need to add frameshift and report stuff. !!!
+         final_results.append(result)
+         sys.stdout.write(f"Processed seq_id: {seq_id}\n")
+         
+    if final_results:
+        # Pass the FULL LIST of results to the engine
+        report_engine = OrfReport(final_results, args.output_dir)
+        
+        if args.output_csv:
+            report_engine.produce_report("csv")
+        if args.output_json:
+            report_engine.produce_report("json")
+        if args.output_html:
+            report_engine.produce_report("html")
+    else:
+        sys.stdout.write("No valid ORFs found. No reports generated.\n")
 
 
 if __name__ == '__main__':

@@ -1,0 +1,14 @@
+[
+    {
+        "seq":"ATGGCCACCAGCTCCTTTATTACCGTTCTTACGAAGAAGAACCTTGCGGTAAGCCACTGGTATTTCGCCCACATGAGGGACAAGGACACCAAGTGTCTCACCACTACGACCGTACTGAATGCCTTCGAGTTCTGCTACCAGCTCAACCATAACATGACCATGAGGTGCAGTTCGAGCATCCGAACGTTTGATGAACACATAGGGCTGTTCAAGTTGAGGCAAAACGCCTTTTTCAACTTCTACTAA",
+        "start":53,
+        "end":299,
+        "length":246,
+        "frame":2,
+        "dominance_ratio":1.0,
+        "frameshift_boolean":false,
+        "frameshift_details":null,
+        "sequence_id":"NC_045512.2",
+        "full_seq_length":720
+    }
+]
