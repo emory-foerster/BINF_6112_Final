@@ -3,6 +3,7 @@
 import orf
 import sys
 import fasta_io
+import pandas as pd 
 
 file = '../datasets/Covid_GCF_009858895.2/sequence.fasta'
 '''
@@ -42,6 +43,7 @@ class FrameshiftDetector:
     def __init__(self, all_orfs: list[dict], window: int = 200):
         self.all_orfs = all_orfs
         self.window   = window
+        self.df = None
 
     def longest_orf(self) -> dict:
         '''
@@ -205,6 +207,23 @@ class FrameshiftDetector:
 
         return details_list
 
+    def annotate_all_dominance(self) -> list[dict]:
+        '''
+        Purpose:
+            Stamp every ORF in self.all_orfs with its own dominance_ratio —
+            its length as a proportion of the total nucleotides across all ORFs.
+
+        Input:
+            self
+
+        Output:
+            self.all_orfs with "dominance_ratio" added to each dict in-place
+        '''
+        total = sum(o['length'] for o in self.all_orfs)
+        for o in self.all_orfs:
+            o['dominance_ratio'] = round(o['length'] / total, 3)
+        return self.all_orfs
+
     def analyze(self, long_orf: dict) -> dict:
         '''
         Purpose:
@@ -259,8 +278,12 @@ if __name__ == '__main__':
     fasta_dict = fasta_io.read_fasta(file)
     seq        = fasta_dict[0]['Sequence']
     all_orfs   = orf.detect_all_frames(seq)
+    
 
-    detector = FrameshiftDetector(all_orfs, window=200)
-    long_orf = detector.longest_orf()
-    result   = detector.analyze(long_orf)
+    detector  = FrameshiftDetector(all_orfs, window=200)
+    long_orf  = detector.longest_orf()
+    result    = detector.analyze(long_orf)
+    annotated = detector.annotate_all_dominance()
+    df = pd.DataFrame(annotated)
+    df.to_csv('all_frames.csv')
     print(result)
