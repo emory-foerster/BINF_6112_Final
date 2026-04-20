@@ -28,26 +28,12 @@ def generate_html_report(all_records_data, output_path="report.html"):
             "severe acute respiratory syndrome coronavirus,", "sars-associated", "ay613950", "nc_004718"
         ]):
             return "SARS-CoV-1"
-        # elif any(k in text for k in ["sars-cov-2", "severe acute respiratory syndrome coronavirus 2", "omicron", "wuhan"]):
-        #     return "SARS-CoV-2 variant"
         elif "severe acute respiratory syndrome" in text:
             return "SARS-CoV-1"
         elif "mers" in text:
             return "MERS-CoV"
         else:
             return description if description else seq_id
-            # return "coronavirus"
-        # text = (seq_id + " " + description).lower()
-        # if seq_id == REFERENCE_ID:
-        #     return "SARS-CoV-2 reference"
-        # elif any(k in text for k in ["sars-cov-2", "covid", "ncov", "omicron", "delta", "alpha", "beta", "gamma", "ba.", "xbb"]):
-        #     return "SARS-CoV-2 variant"
-        # elif any(k in text for k in ["sars-cov-1", "sars coronavirus", "severe acute respiratory syndrome coronavirus 1"]):
-        #     return "SARS-CoV-1"
-        # elif "mers" in text:
-        #     return "MERS-CoV"
-        # else:
-        #     return "coronavirus"
 
     def badge_class(label):
         if "SARS-CoV-1" in label or "MERS" in label:
@@ -237,6 +223,7 @@ def generate_html_report(all_records_data, output_path="report.html"):
     <div class="finding-card finding-warn">
       <div class="finding-title">Frameshifts detected in all {total_fs} sequences within ORF1a</div>
       <p class="finding-body">All sequences have a frameshift inside ORF1a (the largest gene, encoding replication machinery). In each case the shifted reading frame immediately hits a stop codon, truncating the protein. This is consistent with the known programmed ribosomal frameshift at the ORF1a/ORF1b boundary — a feature coronaviruses use intentionally to produce two different proteins from the same genomic region.</p>
+      <sup><a href="#ref-10" style="color:#A32D2D;">[10]</a><a href="#ref-11" style="color:#A32D2D;">[11]</a><a href="#ref-12" style="color:#A32D2D;">[12]</a><a href="#ref-14" style="color:#A32D2D;">[14]</a></sup>
     </div>"""
 
     orf_counts = [r["total_orfs"] for r in comparison_rows]
@@ -246,7 +233,7 @@ def generate_html_report(all_records_data, output_path="report.html"):
         findings_html += f"""
     <div class="finding-card finding-info">
       <div class="finding-title">ORF counts vary across sequences ({min(orf_counts)} to {max(orf_counts)})</div>
-      <p class="finding-body">{min_seq} has the fewest detected ORFs ({min(orf_counts)}) while {max_seq} has the most ({max(orf_counts)}). This likely reflects genuine differences in genome organization between strains rather than a detection error.</p>
+      <p class="finding-body">{min_seq} has the fewest detected ORFs ({min(orf_counts)}) while {max_seq} has the most ({max(orf_counts)}). This likely reflects genuine differences in genome organization between strains rather than a detection error.<sup><a href="#ref-13" style="color:#185FA5;">[13]</a></sup></p>
     </div>"""
 
     now = datetime.now().strftime("%B %d, %Y at %H:%M")
@@ -343,6 +330,9 @@ def generate_html_report(all_records_data, output_path="report.html"):
     .glossary-item{{border:1px solid #eee;border-radius:8px;padding:12px 16px;margin-bottom:10px;}}
     .glossary-term{{font-weight:500;font-size:13px;margin-bottom:4px;}}
     .glossary-def{{font-size:13px;color:#555;line-height:1.6;}}
+    .finding-refs{{margin-top:8px;font-size:11px;color:#888;line-height:1.7;}}
+    .finding-refs a{{color:#A32D2D;text-decoration:none;}}
+    .finding-refs a:hover{{text-decoration:underline;}}
     @media(max-width:700px){{.two-col{{grid-template-columns:1fr;}}}}
   </style>
 </head>
@@ -391,13 +381,33 @@ def generate_html_report(all_records_data, output_path="report.html"):
     <div class="summary-banner" style="background:#EAF3DE;border-color:#3B6D11;color:#27500A;">
       Plain-language definitions for the key terms used in this report.
     </div>
-    <div class="glossary-item"><div class="glossary-term">Open reading frame (ORF)</div><div class="glossary-def">A stretch of DNA that starts with a start codon (ATG) and ends with a stop codon. ORFs are candidates for protein-coding genes &mdash; the cell's machinery reads them to build proteins.</div></div>
-    <div class="glossary-item"><div class="glossary-term">Reading frame</div><div class="glossary-def">DNA is read in triplets called codons. Depending on where you start reading, you get a different set of triplets. Frame 0 starts at position 0, Frame 1 at position 1, Frame 2 at position 2. Each gives a completely different protein sequence from the same DNA.</div></div>
-    <div class="glossary-item"><div class="glossary-term">Frameshift</div><div class="glossary-def">An insertion or deletion that shifts the reading frame. A +1 frameshift means 1 nucleotide was inserted; +2 means 2 were inserted. Everything downstream is now read in a different frame, usually producing a garbled or truncated protein.</div></div>
-    <div class="glossary-item"><div class="glossary-term">Stop codon</div><div class="glossary-def">TAA, TAG, or TGA &mdash; triplets that signal "stop building this protein here." When a frameshift introduces a premature stop codon, the resulting protein is truncated and usually non-functional.</div></div>
-    <div class="glossary-item"><div class="glossary-term">Gene coverage</div><div class="glossary-def">What percentage of a known gene's length is covered by detected ORFs. 100% means the tool found an ORF spanning the full known gene. Lower percentages may indicate mutations, deletions, or detection limits.</div></div>
-    <div class="glossary-item"><div class="glossary-term">Programmed ribosomal frameshift</div><div class="glossary-def">Some viruses, including coronaviruses, deliberately exploit frameshifting. The ORF1a/ORF1b boundary in SARS genomes contains a slippery sequence where ribosomes intentionally slip, allowing the virus to produce two different proteins from the same genomic region.</div></div>
-    <div class="glossary-item"><div class="glossary-term">Spike protein</div><div class="glossary-def">The protein on the surface of coronaviruses that binds to human cells. It is the primary target of COVID-19 vaccines. Detecting ORFs in the Spike gene region helps confirm the genome is intact and the sequence is being read correctly.</div></div>
+    <div class="glossary-item"><div class="glossary-term">Open reading frame (ORF)</div><div class="glossary-def">A stretch of DNA that starts with a start codon (ATG) and ends with a stop codon. ORFs are candidates for protein-coding genes &mdash; the cell's machinery reads them to build proteins.<sup><a href="#ref-1" style="color:#185FA5;">[1]</a><a href="#ref-2" style="color:#185FA5;">[2]</a><a href="#ref-3" style="color:#185FA5;">[3]</a><a href="#ref-4" style="color:#185FA5;">[4]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Reading frame</div><div class="glossary-def">DNA is read in triplets called codons. Depending on where you start reading, you get a different set of triplets. Frame 0 starts at position 0, Frame 1 at position 1, Frame 2 at position 2. Each gives a completely different protein sequence from the same DNA.<sup><a href="#ref-5" style="color:#185FA5;">[5]</a><a href="#ref-2" style="color:#185FA5;">[2]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Frameshift</div><div class="glossary-def">An insertion or deletion that shifts the reading frame. A +1 frameshift means 1 nucleotide was inserted; +2 means 2 were inserted. Everything downstream is now read in a different frame, usually producing a garbled or truncated protein.<sup><a href="#ref-5" style="color:#185FA5;">[5]</a><a href="#ref-6" style="color:#185FA5;">[6]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Stop codon</div><div class="glossary-def">TAA, TAG, or TGA &mdash; triplets that signal "stop building this protein here." When a frameshift introduces a premature stop codon, the resulting protein is truncated and usually non-functional.<sup><a href="#ref-7" style="color:#185FA5;">[7]</a><a href="#ref-8" style="color:#185FA5;">[8]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Gene coverage</div><div class="glossary-def">What percentage of a known gene's length is covered by detected ORFs. 100% means the tool found an ORF spanning the full known gene. Lower percentages may indicate mutations, deletions, or detection limits.<sup><a href="#ref-3" style="color:#185FA5;">[3]</a><a href="#ref-9" style="color:#185FA5;">[9]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Programmed ribosomal frameshift</div><div class="glossary-def">Some viruses, including coronaviruses, deliberately exploit frameshifting. The ORF1a/ORF1b boundary in SARS genomes contains a slippery sequence where ribosomes intentionally slip, allowing the virus to produce two different proteins from the same genomic region.<sup><a href="#ref-10" style="color:#185FA5;">[10]</a><a href="#ref-11" style="color:#185FA5;">[11]</a><a href="#ref-12" style="color:#185FA5;">[12]</a><a href="#ref-14" style="color:#185FA5;">[14]</a><a href="#ref-15" style="color:#185FA5;">[15]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Spike protein</div><div class="glossary-def">The protein on the surface of coronaviruses that binds to human cells. It is the primary target of COVID-19 vaccines. Detecting ORFs in the Spike gene region helps confirm the genome is intact and the sequence is being read correctly.<sup><a href="#ref-16" style="color:#185FA5;">[16]</a><a href="#ref-17" style="color:#185FA5;">[17]</a></sup></div></div>
+    <p class="section-title" style="margin-top:2rem;">References</p>
+    <div style="font-size:12px;color:#555;line-height:2;border-top:1px solid #eee;padding-top:1rem;">
+      <div id="ref-1">[1] National Human Genome Research Institute. Open Reading Frame. <a href="https://www.genome.gov/genetics-glossary/Open-Reading-Frame" target="_blank">genome.gov Talking Glossary</a>.</div>
+      <div id="ref-2">[2] National Human Genome Research Institute. Bioinformatics — Finding Genes. <a href="https://www.genome.gov/25020001/online-education-kit-bioinformatics-finding-genes" target="_blank">genome.gov Education Kit</a>.</div>
+      <div id="ref-3">[3] Wu F et al. (2020). A new coronavirus associated with human respiratory disease in China. <a href="https://doi.org/10.1038/s41586-020-2008-3" target="_blank">Nature 579:265–269</a>.</div>
+      <div id="ref-4">[4] Finkel Y et al. (2021). The coding capacity of SARS-CoV-2. <a href="https://doi.org/10.1038/s41586-020-2739-1" target="_blank">Nature 589:125–130</a>.</div>
+      <div id="ref-5">[5] Crick FHC et al. (1961). General nature of the genetic code for proteins. <a href="https://doi.org/10.1038/192227a0" target="_blank">Nature 192:1227–1232</a>.</div>
+      <div id="ref-6">[6] Farabaugh PJ (1996). Programmed translational frameshifting. <a href="https://doi.org/10.1128/mmbr.60.1.103-134.1996" target="_blank">Microbiol Mol Biol Rev 60(1):103–134</a>.</div>
+      <div id="ref-7">[7] National Human Genome Research Institute. Stop Codon. <a href="https://www.genome.gov/genetics-glossary/Stop-Codon" target="_blank">genome.gov Talking Glossary</a>.</div>
+      <div id="ref-8">[8] Brenner S et al. (1967). UGA: a third nonsense triplet in the genetic code. <a href="https://doi.org/10.1038/2131049a0" target="_blank">Nature 213:449–450</a>.</div>
+      <div id="ref-9">[9] Lee RT et al. (2020). The UCSC SARS-CoV-2 Genome Browser. <a href="https://doi.org/10.1038/s41588-020-0700-8" target="_blank">Nature Genetics 52:986–990</a>.</div>
+      <div id="ref-10">[10] Brierley I, Digard P &amp; Inglis SC (1989). Characterization of an efficient coronavirus ribosomal frameshifting signal. <a href="https://doi.org/10.1016/0092-8674(89)90124-4" target="_blank">Cell 57(4):537–547</a>.</div>
+      <div id="ref-11">[11] Plant EP et al. (2005). A three-stemmed mRNA pseudoknot in the SARS coronavirus frameshift signal. <a href="https://doi.org/10.1371/journal.pbio.0030172" target="_blank">PLOS Biology 3(6):e172</a>.</div>
+      <div id="ref-12">[12] Kelly JA et al. (2020). Structural and functional conservation of the programmed &minus;1 ribosomal frameshift signal of SARS-CoV-2. <a href="https://doi.org/10.1261/rna.076141.120" target="_blank">RNA 26(9):1175–1189</a>.</div>
+      <div id="ref-13">[13] Gorbalenya AE et al. (2020). The species Severe acute respiratory syndrome-related coronavirus: classifying 2019-nCoV and naming it SARS-CoV-2. <a href="https://doi.org/10.1038/s41564-020-0695-z" target="_blank">Nature Microbiology 5:536–544</a>.</div>
+      <div id="ref-14">[14] Bhatt PR et al. (2021). Structural basis of ribosomal frameshifting during translation of the SARS-CoV-2 RNA genome. <a href="https://doi.org/10.1126/science.abf3546" target="_blank">Science 372(6548):1306–1313</a>.</div>
+      <div id="ref-15">[15] Haniff HS et al. (2021). Restriction of SARS-CoV-2 replication by targeting programmed &minus;1 ribosomal frameshifting. <a href="https://doi.org/10.1073/pnas.2023051118" target="_blank">PNAS 118(26):e2023051118</a>.</div>
+      <div id="ref-16">[16] Walls AC et al. (2020). Structure, function, and antigenicity of the SARS-CoV-2 spike glycoprotein. <a href="https://doi.org/10.1016/j.cell.2020.02.058" target="_blank">Cell 181(2):281–292</a>.</div>
+      <div id="ref-17">[17] Wrapp D et al. (2020). Cryo-EM structure of the 2019-nCoV spike in the prefusion conformation. <a href="https://doi.org/10.1126/science.abb2507" target="_blank">Science 367(6483):1260–1263</a>.</div>
+    </div>
   </div>
 
   <script>
