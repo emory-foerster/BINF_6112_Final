@@ -46,7 +46,7 @@ def create_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(description="ORF detection with frameshift analysis.")
 
-    parser.add_argument("-r", "--reference_fasta", type=str, default="sequence_ref.fasta", help="Path to input Fasta file.")
+    parser.add_argument("-r", "--reference_fasta", type=str, default="../datasets/sequence_ref.fasta", help="Path to input Fasta file.")
     parser.add_argument("-f", "--fasta_file", type=str, help="Path to input Fasta file.")
     parser.add_argument("-m", "--min_length", type=int, default=150, help="Minimum ORF length, default = 150.")
     parser.add_argument("-oc", "--output_csv", type=str, help="File name for new output CSV file.")
@@ -154,7 +154,7 @@ def main():
          spike_orfs = sum(1 for o in all_orfs if orfs_viz_sars.get_gene_name(o["start"], o["end"], seq_id, record.get("Description", "")) == "Spike (S)")
          
          # Extract frameshift position and type for comparison table
-         frameshift_details = results.get("frameshift_details", [])
+         frameshift_details = result.get("frameshift_details", [])
          if frameshift_details:
             fs_pos = frameshift_details[0].get("shift_position", "None")
             fs_type = frameshift_details[0].get("shift_type", "None")
@@ -173,7 +173,8 @@ def main():
          html_records.append({
             "seq_id":         seq_id, 
             "all_orfs":       all_orfs,
-            "result":         full_seq,
+            "result":         result,
+            "full_seq":       full_seq,
             "orfs_obj":       orfs_viz_sars,
             "description":    record.get("Description", ""),
             })
