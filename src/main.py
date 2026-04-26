@@ -94,13 +94,14 @@ def main():
     # Check that min length is positive
     if args.min_length < 0:
          sys.stderr.write("Error Minimum length must be a positive integer.\n")
+         sys.exit(1)
 
     # default to CSV if no output format provided
     if not any([args.output_csv, args.output_json, args.output_html]):
-        args.output_csv = "results.csv"
-        sys.stdout.write("No output format specified. Defaulting to CSV.\n")
+        args.output_html = "results.html"
+        sys.stdout.write("No output format specified. Defaulting to html.\n")
 
-    # Loads reference sequence and recrods for analysis
+    # Loads reference sequence and records for analysis
     ref_records = read_fasta(args.reference_fasta)
     records = read_fasta(args.fasta_file)
     
@@ -186,18 +187,22 @@ def main():
     plot_report = PlotReport(final_results, args.output_dir, all_orfs=all_orfs_list[-1] if all_orfs_list else None)
     frameshift_plot_html = plot_report.write_frameshift_plot()
     #Generates the HTML report with all sequences
+<<<<<<< Updated upstream
     generate_html_report(html_records, output_path="../examples/report2.html", frameshift_plot_html=frameshift_plot_html)
+=======
+>>>>>>> Stashed changes
 
     if final_results:
         # Pass the list of results to the engine
-        report_engine = OrfReport(final_results, args.output_dir)
+        report_engine = OrfReport(final_results, args.output_dir, all_orfs=all_orfs[-1] if all_orfs_list else None)
         
         if args.output_csv:
             report_engine.produce_report("csv")
         if args.output_json:
             report_engine.produce_report("json")
         if args.output_html:
-            report_engine.produce_report("html")
+            html_out = os.path.join(args.output_dir, args.output_html)
+            generate_html_report(html_records, output_path=html_out)
     else:
         sys.stdout.write("No valid ORFs found. No reports generated.\n")
 
