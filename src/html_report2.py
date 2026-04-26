@@ -201,7 +201,7 @@ def build_comparison_table(comparison_rows: list[dict]) -> str:
     """
 
     def comp_row(label: str, key: str) -> str:
-         """
+        """
         Purpose:
             Builds single HTML table row for the comparison table
         Input:
@@ -264,8 +264,8 @@ def build_findings_html(comparison_rows: list[dict], total_fs: int) -> str:
       <p class="finding-body">{min_seq} has the fewest detected ORFs ({min(orf_counts)}) while {max_seq} has the most ({max(orf_counts)}). This likely reflects genuine differences in genome organization between strains rather than a detection error.<sup><a href="#ref-13" style="color:#185FA5;">[13]</a></sup></p>
     </div>"""
     return findings_html
-    
-def generate_html_report(all_records_data: list[dict], output_path:str = "report.html") -> None:
+
+def generate_html_report(all_records_data: list[dict], output_path:str = "report.html", frameshift_plot_html:str = "") -> None:
     """
     Purpose:
         Generates multi-tab HTML report summarizing ORF and frameshift detection analysis
@@ -493,6 +493,7 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
     <button class="main-tab active" onclick="switchTab('overview')">Overview</button>
     <button class="main-tab" onclick="switchTab('sequences')">Per-sequence results</button>
     <button class="main-tab" onclick="switchTab('compare')">Comparison</button>
+    <button class="main-tab" onclick="switchTab('plot')">Frameshift Plot</button>
     <button class="main-tab" onclick="switchTab('glossary')">Glossary</button>
   </div>
 
@@ -553,6 +554,9 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
       <div id="ref-17">[17] Wrapp D et al. (2020). Cryo-EM structure of the 2019-nCoV spike in the prefusion conformation. <a href="https://doi.org/10.1126/science.abb2507" target="_blank">Science 367(6483):1260–1263</a>.</div>
     </div>
   </div>
+<div id="tab-plot" class="tab-content">
+    {frameshift_plot_html}
+</div>
 
   <script>
     function switchTab(id) {{
