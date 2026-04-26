@@ -10,6 +10,9 @@ from fasta_io import read_fasta
 from orf import detect_all_frames
 from frameshift import FrameshiftDetector
 
+#add to website
+#update environment
+#AI annotations
 
 class OrfReport:
     """
@@ -233,6 +236,9 @@ class OrfReport:
     # ------------------------------------------------------------------
     def write_frameshift_plot(self, filename: str = "frameshift_plot.html") -> None:
         """
+
+        helped by : claude opus 4.7
+
         Purpose:
             Build the sequence-track plot showing the longest ORF and all
             neighboring ORF frameshift candidates across 3 reading frames,
