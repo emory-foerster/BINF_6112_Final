@@ -118,7 +118,7 @@ def detect_all_frames(seq: str, min_length: int = 0) -> list[dict]:
 
 
 def reverse_complement(seq: str) -> str:
-        """
+    """
     Purpose:
        To resturn the reverse complement of a DNA nucleotide sequence. Used in detect_all_frames to find ORF's in the reverse complement. 
     Input:
