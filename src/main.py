@@ -11,7 +11,7 @@ from frameshift import FrameshiftDetector
 from report import OrfReport
 from visualize import ORFS, sars_cov2_genes, display_cross_sequence_comparison
 from html_report2 import generate_html_report
-
+from WIP_report_2 import OrfReport as PlotReport
 # Emory Foerster
 # Runo Siakpebru
 
@@ -183,9 +183,10 @@ def main():
     # Prints sequence comparison table to terminal 
     if args.visualize and len(comparison_data) > 1:
         display_cross_sequence_comparison(comparison_data)
-
+    plot_report = PlotReport(final_results, args.output_dir, all_orfs=all_orfs_list[-1] if all_orfs_list else None)
+    frameshift_plot_html = plot_report.write_frameshift_plot()
     #Generates the HTML report with all sequences
-    generate_html_report(html_records, output_path="../examples/report2.html")
+    generate_html_report(html_records, output_path="../examples/report2.html", frameshift_plot_html=frameshift_plot_html)
 
     if final_results:
         # Pass the list of results to the engine
