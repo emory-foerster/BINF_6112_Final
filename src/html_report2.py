@@ -1,50 +1,292 @@
 #!/usr/bin/env python3
 from datetime import datetime
-def generate_html_report(all_records_data, output_path="report.html"):
-    from datetime import datetime
+import sys
 
-    def gene_coverage_data(all_orfs, virus_genes):
-        rows = []
-        for gene_start, gene_end, name in virus_genes:
-            gene_len = gene_end - gene_start
-            covered = sum(
-                max(0, min(o["end"], gene_end) - max(o["start"], gene_start))
-                for o in all_orfs
-            )
-            pct = min(100, int((covered / gene_len) * 100))
-            rows.append((name, pct))
-        return rows
+REFERENCE_ID = "NC_045512.2"
 
-    REFERENCE_ID = "NC_045512.2"
 
-    def classify_sequence(seq_id, description=""):
-        text = (seq_id + " " + description).lower()
-        if seq_id == REFERENCE_ID:
-            return "SARS-CoV-2 reference"
-        elif any(k in text for k in ["sars-cov-2", "covid", "ncov", "omicron", "delta", "alpha", "beta", "gamma", "ba.", "xbb", "severe acute respiratory syndrome coronavirus 2", "wuhan"]):
-            return "SARS-CoV-2 variant"
-        elif any(k in text for k in [
-            "sars-cov-1", "sars coronavirus 1", "severe acute respiratory syndrome coronavirus 1",
-            "severe acute respiratory syndrome coronavirus,", "sars-associated", "ay613950", "nc_004718"
-        ]):
-            return "SARS-CoV-1"
-        elif "severe acute respiratory syndrome" in text:
-            return "SARS-CoV-1"
-        elif "mers" in text:
-            return "MERS-CoV"
+def gene_coverage_data(all_orfs: list[dict], virus_genes: list[tuple[int, int, str]]) -> list[tuple[str,int]]:
+    """
+    Purpose:
+        Calculates the percentage of each known viral gene covered by detected ORFs
+    Input:
+        all_orfs    (list[dict])                : List of ORF dicts
+        virus_genes (list[tuple[int, int, str]]): List of (gene_start, gene_end, gene_name) tuples defining known genes
+    Output:
+        list[tuple[str,int]]: A list of (gene_name, coverage_percent) pairs
+    """
+    rows = []
+    for gene_start, gene_end, name in virus_genes:
+        gene_len = gene_end - gene_start
+        covered = sum(
+            max(0, min(o["end"], gene_end) - max(o["start"], gene_start))
+            for o in all_orfs
+        )
+        pct = min(100, int((covered / gene_len) * 100))
+        rows.append((name, pct))
+    return rows
+
+
+def classify_sequence(seq_id: str, description: str = "") -> str:
+    """
+    Purpose:
+        Classifies sequence if it is a known coronavirus strand based on accession ID and description.  
+    Input:
+        seq_id      (str): Sequence accession ID
+        description (str): Optional description string from FASTA header, default is ""
+    Output:
+        str: Strain label - "SARS-CoV-2 reference", "SARS-CoV-2 variant" 
+    """
+    text = (seq_id + " " + description).lower()
+    if seq_id == REFERENCE_ID:
+        return "SARS-CoV-2 reference"
+    elif any(k in text for k in ["sars-cov-2", "covid", "ncov", "omicron", "delta", "alpha", "beta", "gamma", "ba.", "xbb", "severe acute respiratory syndrome coronavirus 2", "wuhan"]):
+        return "SARS-CoV-2 variant"
+    elif any(k in text for k in [
+        "sars-cov-1", "sars coronavirus 1", "severe acute respiratory syndrome coronavirus 1",
+        "severe acute respiratory syndrome coronavirus,", "sars-associated", "ay613950", "nc_004718"
+    ]):
+        return "SARS-CoV-1"
+    elif "severe acute respiratory syndrome" in text:
+        return "SARS-CoV-1"
+    elif "mers" in text:
+        return "MERS-CoV"
+    else:
+        return description if description else seq_id
+
+def badge_class(label: str) -> str:
+    """
+    Purpose:
+        Returns class name for HTML sequence badge based on strain label. Used to determine badge color in the HTML report.
+    Input:
+        label (str): Strain label returned by classify_sequence()
+    Output:
+        str: "badge-sars1" for SARS-CoV-1, "badge-ref" for un-recognized sequences
+    """
+    if "SARS-CoV-1" in label or "MERS" in label:
+        return "badge-sars1"
+    return "badge-ref"
+
+def get_strain_label(seq_id, description=""):
+    """
+    Purpose:
+        Returns shortened sequence label for use in the comparison table header
+    Input:
+        seq_id      (str): Sequence accession ID
+        description (str): Optional description string from FASTA header, default is ""
+    Output:
+        str: Shortened label e.g. "SARS-CoV ref", or the full classify_sequence() label
+    """
+    label = classify_sequence(seq_id, description)
+    if label == "SARS-CoV-2 reference":
+        return "SARS-CoV-2 ref"
+    return label
+
+def build_coverage_html(all_orfs: list[dict], virus_genes: list[tuple[int, int, str]]) -> str: 
+    """
+    Purpose:
+        Builds HTML string for gene coverage progress bars
+    Input:
+        all_orfs    (list[dict]) : List of ORF dicts with "start", "end", "length", and "frame" keys
+        virus_genes (list[tuple[int, int, str]]): List of (gene_start, gene_end, gene_name) tuples defining known genes
+    Output:
+        str: HTML string containing styled coverage bar for each known gene
+    """
+    coverage_html = ""
+    for name, pct in gene_coverage_data(all_orfs, virus_genes):
+        bar_color = "#639922" if pct >= 80 else "#BA7517" if pct >= 50 else "#A32D2D"
+        coverage_html += f"""
+        <div class="cov-row">
+          <span class="cov-label">{name}</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:{pct}%;background:{bar_color}"></div></div>
+          <span class="cov-pct">{pct}%</span>
+        </div>"""
+    return coverage_html
+
+def build_orf_rows(all_orfs: list[dict], orfs_obj, seq_id:str, description: str) -> tuple[str, str]:
+    """
+    Purpose:
+        Builds HTML table rows for all detected ORFS and the frame summary badges
+    Input:
+        all_orfs    (list[dict]) : List of ORF dicts with "start", "end", "length", and "frame" keys
+        orfs_obj    (obj)        : ORF object exposing gene_gene_name()
+        seq_id      (str)        : sequence accession ID
+        description (str)        : Optional FASTA description string
+    Output:
+        tuple[str, str]: Tuple of (orf_rows, frame_summary: 
+            - orf_rows      (str): HTML table row string for each ORF
+            - frame_summary (str): HTML badge string summarizing ORF counts per frame
+    """
+    frame_colors = {0: "#639922", 1: "#185FA5", 2: "#7F77DD"}
+    orf_rows = ""
+    for orf in all_orfs:
+        gene  = orfs_obj.get_gene_name(orf["start"], orf["end"], seq_id, description) or ""
+        color = frame_colors[orf["frame"]]
+        orf_rows += f"""<tr>
+          <td><span class="fdot" style="background:{color}">F{orf['frame']}</span></td>
+          <td>{orf['start']:,}</td><td>{orf['end']:,}</td>
+          <td>{orf['length']:,}</td><td>{orf['length']//3:,}</td>
+          <td class="gene-col">{gene}</td></tr>"""
+
+    frame_summary = " ".join(
+        f'<span class="fdot" style="background:{frame_colors[f]}">Frame {f}: {sum(1 for o in all_orfs if o["frame"]==f)}</span>'
+        for f in range(3)
+    )
+    return orf_rows, frame_summary
+def build_frameshift_html(details: list[dict], full_seq:str, orfs_obj) -> str:
+    """
+    Purpose:
+        Builds HTML string for frameshift analysis section of sequence panel
+    Input:
+        details (list[dict]): List of frameshift details dicts, each containing
+                                - shift_position (int): Position of the frameshift in the sequence
+                                - shift_type     (str): Type of frameshift (e.g. "+1", "+2", "-1")
+        full_seq    (str)   : Nucleotide sequence string
+        orfs_obj    (obj)   : ORF object exposing gene_gene_name()
+    Output:
+        str: HTML string containing a frameshift card for each detected frameshift, 
+             or a "no frameshift detected" message if details is empty
+    """
+    fs_html = ""
+    stop_set = {"TAA", "TAG", "TGA"}
+    for shift in details:
+        pos        = shift["shift_position"]
+        stype      = shift["shift_type"]
+        gene_name  = orfs_obj.get_gene_name(pos, pos+61) or "unknown region"
+        shift_seq  = full_seq[pos:pos+61]
+        ss_seq     = full_seq[pos+shift["shift_magnitude"]:pos+61]
+        orig_cod   = [shift_seq[i:i+3] for i in range(0, len(shift_seq)-2, 3)]
+        shift_cod  = [ss_seq[i:i+3]    for i in range(0, len(ss_seq)-2,    3)]
+        first_stop = next((i+1 for i, c in enumerate(shift_cod) if c in stop_set), None)
+
+        orig_html  = "".join(f'<span class="codon codon-orig">{c}</span>'  for c in orig_cod  if len(c)==3)
+        shift_html = "".join(
+            f'<span class="codon {"codon-stop" if c in stop_set else "codon-shift"}">{c}</span>'
+            for c in shift_cod if len(c)==3
+        )
+        if first_stop:
+            stop_msg = f'<p class="stop-warn">Stop codon <strong>{shift_cod[first_stop-1]}</strong> at codon {first_stop} — protein likely truncated (loss-of-function)</p>'
         else:
-            return description if description else seq_id
+            stop_msg = '<p class="no-stop">No immediate stop codon — may alter protein function</p>'
 
-    def badge_class(label):
-        if "SARS-CoV-1" in label or "MERS" in label:
-            return "badge-sars1"
-        return "badge-ref"
+        fs_html += f"""
+        <div class="fs-card">
+          <div class="fs-title">{stype} frameshift at position {pos:,}</div>
+          <p class="fs-loc">Located within: <strong>{gene_name}</strong></p>
+          {stop_msg}
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row">{orig_html}</div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row">{shift_html}</div>
+        </div>"""
 
-    comparison_rows = []
-    seq_panels_html = ""
-    seq_tab_buttons = ""
-    total_orfs_all  = 0
-    total_fs        = 0
+    if not fs_html:
+        fs_html = '<p class="no-fs">No frameshift detected.</p>'
+    return fs_html
+def build_comparison_table(comparison_rows: list[dict]) -> str:
+    """
+    Purpose:
+        Builds HTML comparison table summarizing key metrics across all sequences
+    Input:
+        compairson_rows (list[dict]): List of per-sequence metric dicts, each containing:
+                                - seq_id      (str): Sequence accession ID
+                                - total_orfs  (int): Total number of ORFS detected per-sequence
+                                - seq_len     (int): Length of sequence in bp
+                                - fs_pos      (str): Frameshift position or "None"
+                                - fs_type     (str): Frameshift type of "None"
+                                - spike_orfs  (int): Number of Spike gene ORFs detected
+                                - description (str): Optional FASTA description string
+    Output:
+        str: HTML string containing styles comparison table.
+    """
+
+    def comp_row(label: str, key: str) -> str:
+         """
+        Purpose:
+            Builds single HTML table row for the comparison table
+        Input:
+            label (str)        : Row label displayed in first column (e.g. "Total ORFs found").
+            key   (str)        : Key to look up each comparison_rows dict (e.g. "total_orfs").
+        Output:
+            str: HTML string for single table row with one cell per sequence
+        """
+        cells = "".join(
+            f'<td class="{"ref-col" if r["seq_id"]==REFERENCE_ID else ""}">{r[key]}</td>' 
+            for r in comparison_rows
+        )
+        return f"<tr><td class='metric-col'>{label}</td>{cells}</tr>"
+    
+    comp_header_cells = "".join(
+        f'<th>{"&#9733; " if r["seq_id"]==REFERENCE_ID else ""}{r["seq_id"]}<br>'
+        f'<span class="th-sub">{get_strain_label(r["seq_id"], r.get("description",""))}</span></th>'
+        for r in comparison_rows
+    )
+    return f"""
+    <table class="comp-tbl">
+      <thead><tr><th>Metric</th>{comp_header_cells}</tr></thead>
+      <tbody>
+        {comp_row("Total ORFs found", "total_orfs")}
+        {comp_row("Sequence length", "seq_len")}
+        {comp_row("Frameshift position", "fs_pos")}
+        {comp_row("Frameshift type", "fs_type")}
+        {comp_row("Spike ORFs", "spike_orfs")}
+      </tbody>
+    </table>"""
+
+def build_findings_html(comparison_rows: list[dict], total_fs: int) -> str:
+    """
+    Purpose:
+        Builds HTML string for key findings section of overview tab.
+    Input:
+        comparison_rows (list[dict]): List of per-sequence metric dicts (see build_compairson_table).
+        total_fs        (str)       : Total number of sequences with detected frameshift
+       
+    Output:
+        str: HTML string containing a finding cards for frameshift detection and ORF count variation. 
+             
+    """
+    findings_html = ""
+    fs_types = set(r["fs_type"] for r in comparison_rows if r["fs_type"] != "None")
+    findings_html += f"""
+    <div class="finding-card finding-warn">
+      <div class="finding-title">Frameshifts detected in all {total_fs} sequences within ORF1a</div>
+      <p class="finding-body">All sequences have a frameshift inside ORF1a (the largest gene, encoding replication machinery). In each case the shifted reading frame immediately hits a stop codon, truncating the protein. This is consistent with the known programmed ribosomal frameshift at the ORF1a/ORF1b boundary — a feature coronaviruses use intentionally to produce two different proteins from the same genomic region.</p>
+      <sup><a href="#ref-10" style="color:#A32D2D;">[10]</a><a href="#ref-11" style="color:#A32D2D;">[11]</a><a href="#ref-12" style="color:#A32D2D;">[12]</a><a href="#ref-14" style="color:#A32D2D;">[14]</a></sup>
+    </div>"""
+
+    orf_counts = [r["total_orfs"] for r in comparison_rows]
+    if max(orf_counts) != min(orf_counts):
+        min_seq = min(comparison_rows, key=lambda r: r["total_orfs"])["seq_id"]
+        max_seq = max(comparison_rows, key=lambda r: r["total_orfs"])["seq_id"]
+        findings_html += f"""
+    <div class="finding-card finding-info">
+      <div class="finding-title">ORF counts vary across sequences ({min(orf_counts)} to {max(orf_counts)})</div>
+      <p class="finding-body">{min_seq} has the fewest detected ORFs ({min(orf_counts)}) while {max_seq} has the most ({max(orf_counts)}). This likely reflects genuine differences in genome organization between strains rather than a detection error.<sup><a href="#ref-13" style="color:#185FA5;">[13]</a></sup></p>
+    </div>"""
+    return findings_html
+    
+def generate_html_report(all_records_data: list[dict], output_path:str = "report.html") -> None:
+    """
+    Purpose:
+        Generates multi-tab HTML report summarizing ORF and frameshift detection analysis
+        across one or multiple genome sequences. 
+    Input:
+        all_records_data(list[dict]): A list of per-sequence result dictionaries each containing:
+                                        - seq_id      (str) : Sequence accession ID
+                                        - description (str) : Optional FASTA description line
+                                        - all_orfs    (list): ORF dicts from detect_ORFs(orf.py) / collect_ORFs(frameshift.py)
+                                        - result      (dict): Frameshift analysis result with frameshift_details (frameshift.py)
+                                        - full_seq    (str) : Nucleotide sequence string for ORF
+                                        - orfs_obj    (obj) : ORF object exposing get_gene_name() ???
+        output_path     (str)       : File path to write HTML to default = "report.html"
+    Output:
+       None, writes HTML file ot output_path and prints conformation to stdout
+    """
+    comparison_rows: list[dict] = []
+    seq_panels_html: str = ""
+    seq_tab_buttons: str = ""
+    total_orfs_all : int = 0
+    total_fs: int        = 0
 
     for i, rec in enumerate(all_records_data):
         seq_id   = rec["seq_id"]
@@ -81,72 +323,15 @@ def generate_html_report(all_records_data, output_path="report.html"):
         })
 
         # --- coverage bars ---
-        coverage_html = ""
-        for name, pct in gene_coverage_data(all_orfs, orfs_obj.virus):
-            bar_color = "#639922" if pct >= 80 else "#BA7517" if pct >= 50 else "#A32D2D"
-            coverage_html += f"""
-            <div class="cov-row">
-              <span class="cov-label">{name}</span>
-              <div class="cov-bg"><div class="cov-bar" style="width:{pct}%;background:{bar_color}"></div></div>
-              <span class="cov-pct">{pct}%</span>
-            </div>"""
+        coverage_html = build_coverage_html(all_orfs, orfs_obj.virus)
 
         # --- ORF table rows ---
-        frame_colors = {0: "#639922", 1: "#185FA5", 2: "#7F77DD"}
-        orf_rows = ""
-        for orf in all_orfs:
-            gene  = orfs_obj.get_gene_name(orf["start"], orf["end"], seq_id, description) or ""
-            color = frame_colors[orf["frame"]]
-            orf_rows += f"""<tr>
-              <td><span class="fdot" style="background:{color}">F{orf['frame']}</span></td>
-              <td>{orf['start']:,}</td><td>{orf['end']:,}</td>
-              <td>{orf['length']:,}</td><td>{orf['length']//3:,}</td>
-              <td class="gene-col">{gene}</td></tr>"""
-
-        frame_summary = " ".join(
-            f'<span class="fdot" style="background:{frame_colors[f]}">Frame {f}: {sum(1 for o in all_orfs if o["frame"]==f)}</span>'
-            for f in range(3)
-        )
+        orf_rows, frame_summary = build_orf_rows(all_orfs, orfs_obj, seq_id, description)
 
         # --- frameshift html ---
-        fs_html = ""
-        stop_set = {"TAA", "TAG", "TGA"}
-        for shift in details:
-            pos        = shift["shift_position"]
-            stype      = shift["shift_type"]
-            gene_name  = orfs_obj.get_gene_name(pos, pos+61) or "unknown region"
-            shift_seq  = full_seq[pos:pos+61]
-            ss_seq     = full_seq[pos+shift["shift_magnitude"]:pos+61]
-            orig_cod   = [shift_seq[i:i+3] for i in range(0, len(shift_seq)-2, 3)]
-            shift_cod  = [ss_seq[i:i+3]    for i in range(0, len(ss_seq)-2,    3)]
-            first_stop = next((i+1 for i, c in enumerate(shift_cod) if c in stop_set), None)
-
-            orig_html  = "".join(f'<span class="codon codon-orig">{c}</span>'  for c in orig_cod  if len(c)==3)
-            shift_html = "".join(
-                f'<span class="codon {"codon-stop" if c in stop_set else "codon-shift"}">{c}</span>'
-                for c in shift_cod if len(c)==3
-            )
-            if first_stop:
-                stop_msg = f'<p class="stop-warn">Stop codon <strong>{shift_cod[first_stop-1]}</strong> at codon {first_stop} — protein likely truncated (loss-of-function)</p>'
-            else:
-                stop_msg = '<p class="no-stop">No immediate stop codon — may alter protein function</p>'
-
-            fs_html += f"""
-            <div class="fs-card">
-              <div class="fs-title">{stype} frameshift at position {pos:,}</div>
-              <p class="fs-loc">Located within: <strong>{gene_name}</strong></p>
-              {stop_msg}
-              <p class="codon-label">Original reading:</p>
-              <div class="codon-row">{orig_html}</div>
-              <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
-              <div class="codon-row">{shift_html}</div>
-            </div>"""
-
-        if not fs_html:
-            fs_html = '<p class="no-fs">No frameshift detected.</p>'
+        fs_html = build_frameshift_html(details, full_seq, orfs_obj)
 
         # --- reference banner ---
-        # description = rec.get("description", "")
         strain_label = classify_sequence(seq_id, description)
         if seq_id == REFERENCE_ID:
             ref_banner = '<div class="ref-banner"><strong>SARS-CoV-2 reference genome</strong> — NC_045512.2 is the Wuhan-Hu-1 strain deposited when SARS-CoV-2 was first sequenced in 2020. This is the standard reference for all SARS-CoV-2 research.</div>'
@@ -158,7 +343,6 @@ def generate_html_report(all_records_data, output_path="report.html"):
             ref_banner = f'<div class="ref-banner"><strong>SARS-CoV-2 variant</strong> — {description if description else seq_id}</div>'
         else:
             ref_banner = f'<div class="sars1-banner"><strong>{strain_label}</strong></div>'
-            # ref_banner = ""
 
         seq_panels_html += f"""
         <div id="seq-s{i}" class="seq-panel {active}">
@@ -189,52 +373,12 @@ def generate_html_report(all_records_data, output_path="report.html"):
           {fs_html}
         </div>"""
 
-    # --- comparison table ---
-    def get_strain_label(seq_id, description=""):
-        label = classify_sequence(seq_id, description)
-        if label == "SARS-CoV-2 reference":
-            return "SARS-CoV-2 ref"
-        return label
 
-    comp_header_cells = "".join(
-        f'<th>{"&#9733; " if r["seq_id"]==REFERENCE_ID else ""}{r["seq_id"]}<br><span class="th-sub">{get_strain_label(r["seq_id"], r.get("description",""))}</span></th>'
-        for r in comparison_rows
-    )
-    def comp_row(label, key):
-        cells = "".join(f'<td class="{"ref-col" if r["seq_id"]==REFERENCE_ID else ""}">{r[key]}</td>' for r in comparison_rows)
-        return f"<tr><td class='metric-col'>{label}</td>{cells}</tr>"
-
-    comp_table = f"""
-    <table class="comp-tbl">
-      <thead><tr><th>Metric</th>{comp_header_cells}</tr></thead>
-      <tbody>
-        {comp_row("Total ORFs found", "total_orfs")}
-        {comp_row("Sequence length", "seq_len")}
-        {comp_row("Frameshift position", "fs_pos")}
-        {comp_row("Frameshift type", "fs_type")}
-        {comp_row("Spike ORFs", "spike_orfs")}
-      </tbody>
-    </table>"""
+    # --- comparison table  ---
+    comp_table = build_comparison_table(comparison_rows)
 
     # --- overview key findings ---
-    findings_html = ""
-    fs_types = set(r["fs_type"] for r in comparison_rows if r["fs_type"] != "None")
-    findings_html += f"""
-    <div class="finding-card finding-warn">
-      <div class="finding-title">Frameshifts detected in all {total_fs} sequences within ORF1a</div>
-      <p class="finding-body">All sequences have a frameshift inside ORF1a (the largest gene, encoding replication machinery). In each case the shifted reading frame immediately hits a stop codon, truncating the protein. This is consistent with the known programmed ribosomal frameshift at the ORF1a/ORF1b boundary — a feature coronaviruses use intentionally to produce two different proteins from the same genomic region.</p>
-      <sup><a href="#ref-10" style="color:#A32D2D;">[10]</a><a href="#ref-11" style="color:#A32D2D;">[11]</a><a href="#ref-12" style="color:#A32D2D;">[12]</a><a href="#ref-14" style="color:#A32D2D;">[14]</a></sup>
-    </div>"""
-
-    orf_counts = [r["total_orfs"] for r in comparison_rows]
-    if max(orf_counts) != min(orf_counts):
-        min_seq = min(comparison_rows, key=lambda r: r["total_orfs"])["seq_id"]
-        max_seq = max(comparison_rows, key=lambda r: r["total_orfs"])["seq_id"]
-        findings_html += f"""
-    <div class="finding-card finding-info">
-      <div class="finding-title">ORF counts vary across sequences ({min(orf_counts)} to {max(orf_counts)})</div>
-      <p class="finding-body">{min_seq} has the fewest detected ORFs ({min(orf_counts)}) while {max_seq} has the most ({max(orf_counts)}). This likely reflects genuine differences in genome organization between strains rather than a detection error.<sup><a href="#ref-13" style="color:#185FA5;">[13]</a></sup></p>
-    </div>"""
+    findings_html = build_findings_html(comparison_rows, total_fs)
 
     now = datetime.now().strftime("%B %d, %Y at %H:%M")
     n   = len(all_records_data)
@@ -429,7 +573,7 @@ def generate_html_report(all_records_data, output_path="report.html"):
 
     with open(output_path, "w") as f:
         f.write(html)
-    print(f"HTML report saved to {output_path}")
+    sys.stdout.write(f"HTML report saved to {output_path}\n")
 
 
 
