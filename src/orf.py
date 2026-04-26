@@ -40,19 +40,22 @@ def parse_codons(seq: str, frame:int) -> list[tuple[str, int]]:
 def detect_ORF(codon_list: list[tuple[str,int]], frame: int) -> list[dict]:
     """
     Purpose:
-        To find all ORFs in a sequence using 3 frames and saving them into dictionaries. 
+        Detects all ORFs in a single reading frame by scanning pre-split codon list
+        and returing each ORF as a dictionary
     Input:
-        sequence (str): nucleotide sequence list from fastaio.py.
+        codon_list (list[tuple[str, int]]): a list of codon, position tuples where each codon is a 3 character 
+                                            upper case string and position is its start index. 
+        frame      (str):                   Reading frame (0,1 or 2) that the condon list is generated from
+
     Output:
-        A dictionary with the reading frames and orfs cooresponding to them
+        list[dict]: A list of ORF dictionaries each containing:
         - seq      (str): nulecotide string of the ORF (start to stop condons inclusive)
         - start    (int): start positon of ORF
-        - end      (int): ending position 
+        - end      (int): ending position of ORF
         - length   (int): length of ORF
         - frame    (int): reading frame 0,1,2
     High‑level steps:
-        1. Read in sequence 
-        2. For each reading frames (0,1,2)
+        1. For each reading frames (0,1,2)
             a. initialize tracking variable to store data
             b. scan sequence through each reading frame one at a time
             c. scan sequence 3 nucleotides at a time
@@ -60,8 +63,8 @@ def detect_ORF(codon_list: list[tuple[str,int]], frame: int) -> list[dict]:
                 - if start codon comes before stop, create new ORF and record nucleotides in both
             e. stop recording sequence when hit stop codons
 
-        3. collect all ORF from reading frames
-        4. return list of ORF and the additional information 
+        2. collect all ORF from reading frames
+        3. return list of ORF and the additional information 
     """
     stop_codons = ["TAA", "TAG", "TGA"]
     orfs = []
@@ -94,7 +97,8 @@ def detect_all_frames(seq: str, min_length: int = 0) -> list[dict]:
     Purpose:
         To run detect_ORF across all three reading frames in a sequence and returns every ORF found. 
     Input:
-        sequence (str): nucleotide sequence (uppercase)
+        seq        (str): nucleotide sequence (uppercase)
+        min_length (int): minimum length of the ORF you want to records
     Output:
         A list that combines all ORF dictionaries created by detect_ORF 
     High‑level steps:
@@ -114,6 +118,19 @@ def detect_all_frames(seq: str, min_length: int = 0) -> list[dict]:
 
 
 def reverse_complement(seq: str) -> str:
+        """
+    Purpose:
+       To resturn the reverse complement of a DNA nucleotide sequence. Used in detect_all_frames to find ORF's in the reverse complement. 
+    Input:
+        seq (str): nucleotide sequence (uppercase)
+    Output:
+        str: the reverse complement of the input sequence 
+    High‑level steps:
+        1. Define complement mapping (A:T, & G:C)
+        2. Reverse the input sequence
+        3. Replace each base with its complement
+        3. Return the reverse_complement as a string
+    """
     complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
     return ''.join(complement[b] for b in reversed(seq))
 
