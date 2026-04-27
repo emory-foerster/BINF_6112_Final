@@ -444,7 +444,7 @@ class OrfReport:
             raise RuntimeError(f"Failed to write frameshift plot to '{output_path}': {e}") from e
 
         print(f"Frameshift plot successfully saved to {output_path}")
-
+        return fig.to_html(full_html=False, include_plotlyjs='cdn')
     # ------------------------------------------------------------------
     # Dispatcher
     # ------------------------------------------------------------------

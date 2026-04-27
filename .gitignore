@@ -2,4 +2,7 @@ src/__pycache__/report.cpython-311.pyc
 src/__pycache__/frameshift.cpython-311.pyc
 src/__pycache__/fasta_io.cpython-311.pyc
 src/__pycache__/orf.cpython-311.pyc
-src/tester.test
+.DS_Store
+**/.DS_Store
+__pycache__/
+*.pyc

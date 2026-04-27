@@ -10,6 +10,9 @@ Used by main.py as the first step of the pipeline.
 
 Input: FASTA file path
 Output: list of records.
+
+Modified by Emory: added Description field parsing from FASTA header
+to support sequence annotation in visualize.py and html_report2.py.
 """
 def read_fasta(path):
     """
@@ -29,13 +32,16 @@ def read_fasta(path):
         
             if line.startswith(">"):
                 if sequence_id is not None:
-                    records.append({"ID": sequence_id, "Sequence": "".join(sequence).upper()})
-                sequence_id = line[1:].split()[0]
+                    records.append({"ID": sequence_id, "Sequence": "".join(sequence).upper(), "Description": description})
+                # Removes ">" and splits header into 2 parts seq_id and description
+                parts = line[1:].split(None,1) 
+                sequence_id = parts[0]
+                description = parts[1] if len(parts) > 1 else ""
                 sequence = []
             else:
                 sequence.append(line)
                 
         if sequence_id is not None:
-            records.append({"ID": sequence_id, "Sequence": "".join(sequence).upper()})
+            records.append({"ID": sequence_id, "Sequence": "".join(sequence).upper(), "Description": description})
 
     return records 

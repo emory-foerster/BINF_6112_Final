@@ -26,7 +26,9 @@ sars_cov2_genes = [
 class ORFS:
     """
     Purpose: 
-        Visualization and annotation class for ORF detection results. 
+        Visualization and annotation class for ORF detection results.
+        Provides methods to annotate ORFs with known gene names
+        Prints colorized terminal summaries, and display frameshift analysis.
     Attributes: 
         virus(list[tuple[int, int, str]]): List of (start, end, name) tuples represent known gene pos for reference virus
     """
@@ -41,7 +43,7 @@ class ORFS:
             None
         """
         self.virus = virus_genes
-    def get_gene_name(self,orf_start: int, orf_end: int, seq_id: str = "", description: str="") -> Optional[str]:
+    def get_gene_name(self, orf_start: int, orf_end: int, seq_id: str = "", description: str="") -> Optional[str]:
         """
         Purpose: 
             Return name of known gene that best overlaps a given ORF
@@ -73,7 +75,7 @@ class ORFS:
                 return name
         return None
 
-    def visualize_orf(self,all_orfs, seq_id, seq, description=""):
+    def visualize_orf(self, all_orfs: list[dict], seq_id: str, seq:str, description: str = "") -> None:
         """
         Purpose: 
             Print a formatted, colorized ORF table and reading frame summary to terminal
@@ -81,8 +83,9 @@ class ORFS:
         Input: 
             all_orfs (list[dict]): List of ORF dicts, each containing keys: 
                                     'frame' (int), 'start'(int), 'end'(int), 'length'(int)
-            seq_id   (str):        Sequence identifier (e.g "NC_045512.2")
-            seq      (str):        Full nucleotide sequence string
+            seq_id      (str):     Sequence identifier (e.g "NC_045512.2")
+            seq         (str):     Full nucleotide sequence string
+            description (str):     FASTA header description string, default is "" 
         Output:
             None
         """
@@ -123,7 +126,7 @@ class ORFS:
 
             sys.stdout.write(f"  {color}{text_color} Frame {frame} {Style.RESET_ALL}: {len(frame_orfs)} ORFs found\n")
 
-    def display_frameshift(self, result: dict, seq:str, seq_id: str="", description: str="") -> None:
+    def display_frameshift(self, result: dict, seq:str, seq_id: str = "", description: str = "") -> None:
         """
         Purpose:
             Print biological interpretation of each detected frameshift to terminal 
@@ -133,8 +136,10 @@ class ORFS:
                           Must contain key 'frameshift_details' a list of shift dicts with keys: 
                             - 'shift_position' (int): Genomic position of shift
                             - 'shift_type'     (str): e.g "+1" or "+2"
-                            - shift_magnitude (int): Nucleotide shifted
-            seq    (str): Full nucleptide seq string
+                            -  shift_magnitude (int): Nucleotide shifted
+            seq        (str): Full nucleotide seq string
+            seq_id     (str): Sequence identifier, default is ""
+            descriptio (str): FASTA header description string, default is "" 
         Output: 
             None
         """
@@ -209,11 +214,11 @@ class ORFS:
             color = Fore.GREEN if pct >= 80 else Fore.YELLOW if pct >= 50 else Fore.RED
             sys.stdout.write(f"  {name:<25} {color}{bar}{Style.RESET_ALL}  {pct}% covered \n")
 
-def display_cross_sequence_comparison(all_results):
+def display_cross_sequence_comparison(all_results: list[dict]) -> None:
     """
     Purpose: 
-        Print formatted cross-sequence comparison table to terminal. 
-        Compares key metrics across all analyzed seq side by side
+        Print a formatted cross-sequence comparison table to terminal. 
+        Compares key metrics across all analyzed sequences side by side.
     Input:
         all_results (list[dict]): List of result dicts, one per sequence,
                                   each containing:
