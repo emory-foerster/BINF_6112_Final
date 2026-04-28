@@ -8,10 +8,9 @@ import sys
 import os 
 from orf import detect_all_frames
 from frameshift import FrameshiftDetector
-from report import OrfReport
+from WIP_report_2 import OrfReport
 from visualize import ORFS, sars_cov2_genes, display_cross_sequence_comparison
 from html_report2 import generate_html_report
-from WIP_report_2 import OrfReport as PlotReport
 # Emory Foerster
 # Runo Siakpebru
 
@@ -54,6 +53,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("-oh", "--output_html", type=str, help="File name for new output html file.")
     parser.add_argument("-d", "--output_dir", type=str, default="../examples", help="Directory to save output files.")
     parser.add_argument("-v", "--visualize", action="store_true", help="Shows visual ORF output in terminal.")
+    parser.add_argument("-op", "--output_plot", type=str, help="Filename for frameshift track plot (HTML).")
     return parser
 
 
@@ -134,13 +134,16 @@ def main():
          all_orfs = detect_all_frames(full_seq, min_length = args.min_length )
          all_orfs_list.append(all_orfs)
          # Prints colorized ORF table and gene coverage to terminal or to output file
-         if args.visualize: 
+         if args.visualize:
             orfs_viz_sars.visualize_orf(all_orfs, seq_id, full_seq, record.get("Description", ""))
             orfs_viz_sars.display_gene_coverage(all_orfs)
          if not all_orfs:
              continue
-         # Runs frameshift analysis on longest detected ORF
-         detector = FrameshiftDetector(all_orfs, window=200)
+         # Use unfiltered ORFs for frameshift neighbor detection so short neighboring
+         # ORFs at frameshift boundaries (e.g. ORF1a/1b ~173 nt) are not missed when
+         # min_length is set high.
+         all_orfs_raw = detect_all_frames(full_seq)
+         detector = FrameshiftDetector(all_orfs_raw, window=200)
          long_orf = detector.longest_orf()
          result   = detector.analyze(long_orf)
          # Prints frameshift details to terminal if frameshift detected
@@ -184,25 +187,19 @@ def main():
     # Prints sequence comparison table to terminal 
     if args.visualize and len(comparison_data) > 1:
         display_cross_sequence_comparison(comparison_data)
-    plot_report = PlotReport(final_results, args.output_dir, all_orfs=all_orfs_list[-1] if all_orfs_list else None)
-    frameshift_plot_html = plot_report.write_frameshift_plot()
-    #Generates the HTML report with all sequences
-<<<<<<< Updated upstream
-    generate_html_report(html_records, output_path="../examples/report2.html", frameshift_plot_html=frameshift_plot_html)
-=======
->>>>>>> Stashed changes
-
     if final_results:
         # Pass the list of results to the engine
-        report_engine = OrfReport(final_results, args.output_dir, all_orfs=all_orfs[-1] if all_orfs_list else None)
-        
+        report_engine = OrfReport(final_results, args.output_dir, all_orfs=all_orfs_list[-1] if all_orfs_list else None)
+        frameshift_plot_html = report_engine.write_frameshift_plot() or ""
+        if args.output_plot:
+            report_engine.produce_report("frameshift_plot")
         if args.output_csv:
             report_engine.produce_report("csv")
         if args.output_json:
             report_engine.produce_report("json")
         if args.output_html:
             html_out = os.path.join(args.output_dir, args.output_html)
-            generate_html_report(html_records, output_path=html_out)
+            generate_html_report(html_records, output_path=html_out,frameshift_plot_html=frameshift_plot_html)
     else:
         sys.stdout.write("No valid ORFs found. No reports generated.\n")
 

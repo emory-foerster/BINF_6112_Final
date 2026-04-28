@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from datetime import datetime
 import sys
+import plotly.graph_objects as go
 
 REFERENCE_ID = "NC_045512.2"
 
@@ -305,7 +306,7 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
 
         # --- metrics ---
         spike_orfs = sum(1 for o in all_orfs if orfs_obj.get_gene_name(o["start"], o["end"], seq_id, description) == "Spike (S)")
-        details    = result.get("frameshift_details", [])
+        details    = result.get("frameshift_details") or []
         fs_pos     = details[0]["shift_position"] if details else None
         fs_type    = details[0]["shift_type"]     if details else None
         if details:
@@ -479,6 +480,7 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
     .finding-refs a:hover{{text-decoration:underline;}}
     @media(max-width:700px){{.two-col{{grid-template-columns:1fr;}}}}
   </style>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
   <header>
@@ -521,7 +523,15 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
     </div>
     {comp_table}
   </div>
-
+   <div id="tab-plot" class="tab-content">
+    <div class="summary-banner">
+      Sequence-track view of the longest ORF (steelblue) and neighboring frameshift
+      candidates across all 3 reading frames. The dashed vertical line marks the
+      detected frameshift site.
+    </div>
+    {frameshift_plot_html}
+  </div>
+  
   <div id="tab-glossary" class="tab-content">
     <div class="summary-banner" style="background:#EAF3DE;border-color:#3B6D11;color:#27500A;">
       Plain-language definitions for the key terms used in this report.
@@ -554,9 +564,6 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
       <div id="ref-17">[17] Wrapp D et al. (2020). Cryo-EM structure of the 2019-nCoV spike in the prefusion conformation. <a href="https://doi.org/10.1126/science.abb2507" target="_blank">Science 367(6483):1260–1263</a>.</div>
     </div>
   </div>
-<div id="tab-plot" class="tab-content">
-    {frameshift_plot_html}
-</div>
 
   <script>
     function switchTab(id) {{

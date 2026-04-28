@@ -22,7 +22,7 @@
 # Resolve the repo root from wherever this script lives
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-INPUT_FILE="$REPO_ROOT/datasets/Covid_GCF_009858895.2/sample.fasta"
+INPUT_FILE="$REPO_ROOT/datasets/seq1.fasta"
 REF_FILE="$REPO_ROOT/datasets/sequence_ref.fasta"
 OUTPUT_DIR="$REPO_ROOT/out_results"
 CSV_OUT="test_summary.csv"

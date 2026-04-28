@@ -234,7 +234,7 @@ class OrfReport:
     # ------------------------------------------------------------------
     # Frameshift sequence-track plot
     # ------------------------------------------------------------------
-    def write_frameshift_plot(self, filename: str = "frameshift_plot.html") -> None:
+    def write_frameshift_plot(self, filename: str = "frameshift_plot.html") -> str:
         """
 
         helped by : claude opus 4.7
@@ -264,7 +264,7 @@ class OrfReport:
 
         if not self.results:
             sys.stderr.write("Warning: no results provided — skipping frameshift plot.\n")
-            return
+            return ""
 
         frameshift_result = next(
             (r for r in self.results if isinstance(r, dict) and r.get("frameshift_boolean")),
@@ -272,14 +272,14 @@ class OrfReport:
         )
         if not frameshift_result:
             sys.stderr.write("Warning: no result with frameshift_boolean=True — skipping plot.\n")
-            return
+            return ""
 
         lo                 = frameshift_result
         frameshift_details = lo.get("frameshift_details") or []
 
         if not frameshift_details:
             sys.stderr.write("Warning: frameshift_details is empty — skipping plot.\n")
-            return
+            return ""
 
         # Validate required keys on the longest ORF dict
         for key in ('start', 'end', 'length', 'frame', 'dominance_ratio'):
@@ -312,7 +312,7 @@ class OrfReport:
 
         if not valid_details:
             sys.stderr.write("Warning: no valid frameshift details after validation — skipping plot.\n")
-            return
+            return ""
 
         _total_nt = (
             sum(o['length'] for o in self.all_orfs if isinstance(o, dict) and 'length' in o)
@@ -436,15 +436,8 @@ class OrfReport:
             legend=dict(x=1.01, y=1, xanchor='left'),
         )
 
-        output_path = os.path.join(self.output_dir, filename)
+        return fig.to_html(full_html=False, include_plotlyjs=False)
 
-        try:
-            fig.write_html(output_path)
-        except OSError as e:
-            raise RuntimeError(f"Failed to write frameshift plot to '{output_path}': {e}") from e
-
-        print(f"Frameshift plot successfully saved to {output_path}")
-        return fig.to_html(full_html=False, include_plotlyjs='cdn')
     # ------------------------------------------------------------------
     # Dispatcher
     # ------------------------------------------------------------------

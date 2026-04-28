@@ -1,2 +1,5 @@
 sequence_id,frameshift_suspected,frameshift_position,shift_type,dominance,longest_orf_start,longest_orf_end,longest_orf_length_nt,overlap_length
-NC_045512.2,False,,,1.0,53,299,246,
+NC_045512.2,True,13310,+1,0.205,265,13483,13218,156
+NC_004718.3,True,13267,+1,0.19,264,13413,13149,99
+OR575624.1,True,13298,+1,0.205,262,13471,13209,156
+NC_009942.1,True,10321,+1,0.384,96,10398,10302,24
