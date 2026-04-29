@@ -8,7 +8,7 @@ import sys
 import os 
 from orf import detect_all_frames
 from frameshift import FrameshiftDetector
-from WIP_report_2 import OrfReport
+from report import OrfReport
 from visualize import ORFS, sars_cov2_genes, display_cross_sequence_comparison
 from html_report2 import generate_html_report
 # Emory Foerster
@@ -124,11 +124,13 @@ def main():
     comparison_data = []
     # Full data per sequence for HTML report
     html_records = []
+    all_orfs_raw_list: list = []
 
     for record in records:
          seq_id = record["ID"]
          full_seq = record["Sequence"]
          seq_len = len(full_seq)
+
 
          #Detects all ORFs across all 3 reading frames above the minimum length threshold
          all_orfs = detect_all_frames(full_seq, min_length = args.min_length )
@@ -143,6 +145,7 @@ def main():
          # ORFs at frameshift boundaries (e.g. ORF1a/1b ~173 nt) are not missed when
          # min_length is set high.
          all_orfs_raw = detect_all_frames(full_seq)
+         all_orfs_raw_list.append(all_orfs_raw)
          detector = FrameshiftDetector(all_orfs_raw, window=200)
          long_orf = detector.longest_orf()
          result   = detector.analyze(long_orf)
@@ -189,8 +192,9 @@ def main():
         display_cross_sequence_comparison(comparison_data)
     if final_results:
         # Pass the list of results to the engine
-        report_engine = OrfReport(final_results, args.output_dir, all_orfs=all_orfs_list[-1] if all_orfs_list else None)
-        frameshift_plot_html = report_engine.write_frameshift_plot() or ""
+        report_engine = OrfReport(final_results, args.output_dir, all_orfs=all_orfs_list[-1] if all_orfs_list else None, all_orfs_per_seq=all_orfs_raw_list or None,)
+        frameshift_plot_html = report_engine.write_frameshift_plot()
+        frameshift_plots     = report_engine.build_frameshift_plots_html()
         if args.output_plot:
             report_engine.produce_report("frameshift_plot")
         if args.output_csv:
@@ -199,7 +203,7 @@ def main():
             report_engine.produce_report("json")
         if args.output_html:
             html_out = os.path.join(args.output_dir, args.output_html)
-            generate_html_report(html_records, output_path=html_out,frameshift_plot_html=frameshift_plot_html)
+            generate_html_report(html_records, output_path=html_out,frameshift_plots=frameshift_plots)
     else:
         sys.stdout.write("No valid ORFs found. No reports generated.\n")
 

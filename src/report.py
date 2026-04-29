@@ -33,6 +33,7 @@ class OrfReport:
         results: List[Dict[str, Any]],
         output_dir: str = ".",
         all_orfs: Optional[List[Dict]] = None,
+        all_orfs_per_seq=None
     ) -> None:
         if not isinstance(results, list):
             raise TypeError(f"results must be a list, got {type(results).__name__}")
@@ -45,10 +46,14 @@ class OrfReport:
                 raise TypeError(f"all_orfs must be a list or None, got {type(all_orfs).__name__}")
             if not all(isinstance(o, dict) for o in all_orfs):
                 raise TypeError("every item in all_orfs must be a dict")
+        if all_orfs_per_seq is not None:
+            if not isinstance(all_orfs_per_seq, list):
+                raise TypeError(f"all_orfs_per_seq must be a list or None, got {type(all_orfs_per_seq).__name__}")
 
         self.results    = results
         self.output_dir = output_dir
         self.all_orfs   = all_orfs
+        self.all_orfs_per_seq = all_orfs_per_seq
 
         try:
             os.makedirs(self.output_dir, exist_ok=True)
@@ -442,6 +447,195 @@ class OrfReport:
         print(f"Frameshift plot successfully saved to {output_path}")
 
     # ------------------------------------------------------------------
+    # Per-sequence frameshift plot fragments (for embedded HTML report)
+    # ------------------------------------------------------------------
+    def build_frameshift_plots_html(self) -> list[dict]:
+        """
+        Purpose:
+            Build a per-sequence Plotly frameshift track and return all results
+            as a list so html_report2.py can render one panel per sequence.
+
+        Input:
+            self
+
+        Output:
+            list[dict]: one entry per sequence in self.results, each containing:
+                - "seq_id" (str): sequence accession ID
+                - "html"   (str): Plotly div fragment, or a no-frameshift <p> tag
+
+        High-level steps:
+            1. Guard: return [] if self.results is empty.
+            2. Loop over every result in self.results by index.
+            3. Pick the matching unfiltered ORF pool for that index.
+            4. Compute _total_nt from that pool for accurate dominance ratios.
+            5. If no frameshift for this sequence, append a placeholder and continue.
+            6. Validate details, run the Plotly drawing logic, append the HTML fragment.
+            7. Return the completed list.
+        """
+        if not self.results:
+            return []
+
+        LANE               = {0: 0.0, 1: 1.0, 2: 2.0}
+        BAR_H              = 0.3
+        COLORS             = {'longest': 'steelblue', '+1': 'darkorange', '+2': 'crimson'}
+        MIN_LABEL_WIDTH_NT = 80
+        plots              = []
+
+        for i, result in enumerate(self.results):
+            seq_id = result.get("sequence_id", f"seq_{i}")
+
+            # Per-sequence ORF pool for correct dominance denominator
+            if self.all_orfs_per_seq and i < len(self.all_orfs_per_seq):
+                orfs = self.all_orfs_per_seq[i]
+            else:
+                orfs = self.all_orfs or []
+
+            _total_nt = (
+                sum(o['length'] for o in orfs if isinstance(o, dict) and 'length' in o)
+                or None
+            )
+
+            # No frameshift for this sequence — add placeholder and move on
+            if not result.get("frameshift_boolean"):
+                plots.append({"seq_id": seq_id, "html": '<p class="no-fs">No frameshift detected.</p>'})
+                continue
+
+            lo                 = result
+            frameshift_details = lo.get("frameshift_details") or []
+
+            if not frameshift_details:
+                plots.append({"seq_id": seq_id, "html": '<p class="no-fs">No frameshift detected.</p>'})
+                continue
+
+            # Validate each detail before drawing
+            valid_details = []
+            for j, detail in enumerate(frameshift_details):
+                if not isinstance(detail, dict):
+                    continue
+                n = detail.get("neighboring_orf")
+                if not isinstance(n, dict):
+                    continue
+                if not all(k in n for k in ('start', 'end', 'length', 'frame')):
+                    continue
+                if n['frame'] not in (0, 1, 2):
+                    continue
+                if 'shift_type' not in detail:
+                    continue
+                valid_details.append(detail)
+
+            if not valid_details:
+                plots.append({"seq_id": seq_id, "html": '<p class="no-fs">No frameshift detected.</p>'})
+                continue
+
+            fig  = go.Figure()
+            y_lo = LANE[lo['frame']]
+
+            fig.add_shape(
+                type='rect',
+                x0=lo['start'], x1=lo['end'],
+                y0=y_lo - BAR_H, y1=y_lo + BAR_H,
+                fillcolor=COLORS['longest'], line_color='navy', line_width=1,
+            )
+            fig.add_annotation(
+                x=(lo['start'] + lo['end']) / 2, y=y_lo,
+                text=f"Longest ORF  |  frame {lo['frame']}  |  {lo['length']} nt  |  dom={lo['dominance_ratio']}",
+                showarrow=False,
+                font=dict(color='white', size=11, family='monospace'),
+            )
+
+            seen_labels = set()
+            for detail in valid_details:
+                n     = detail['neighboring_orf']
+                stype = detail['shift_type']
+                y     = LANE[n['frame']]
+                color = COLORS.get(stype, 'grey')
+                dom   = round(n['length'] / _total_nt, 3) if _total_nt else 'N/A'
+
+                overlaps_main = (n['start'] < lo['end']) and (n['end'] > lo['start'])
+
+                fig.add_shape(
+                    type='rect',
+                    x0=n['start'], x1=n['end'],
+                    y0=y - BAR_H, y1=y + BAR_H,
+                    fillcolor=color, line_color='black',
+                    line_width=2.5 if overlaps_main else 1,
+                    line_dash='solid' if overlaps_main else 'dot',
+                    opacity=0.85 if overlaps_main else 0.55,
+                )
+                fig.add_annotation(
+                    x=n['start'], y=y + BAR_H + 0.05,
+                    xref='x', yref='y',
+                    text=f"nt {n['start']}",
+                    showarrow=False, xanchor='left',
+                    font=dict(color=color, size=8, family='monospace'),
+                )
+                if (n['end'] - n['start']) >= MIN_LABEL_WIDTH_NT:
+                    fig.add_annotation(
+                        x=(n['start'] + n['end']) / 2, y=y,
+                        text=f"{stype}  dom={dom}",
+                        showarrow=False,
+                        font=dict(color='white', size=9, family='monospace'),
+                    )
+
+                label = f'Neighbor ({stype}) — overlaps main' if overlaps_main else f'Neighbor ({stype})'
+                if label not in seen_labels:
+                    seen_labels.add(label)
+                    fig.add_trace(go.Scatter(
+                        x=[None], y=[None], mode='markers',
+                        marker=dict(
+                            size=12, color=color, symbol='square',
+                            line=dict(color='black', width=2 if overlaps_main else 1),
+                        ),
+                        name=label,
+                    ))
+
+            fig.add_trace(go.Scatter(
+                x=[None], y=[None], mode='markers',
+                marker=dict(size=12, color=COLORS['longest'], symbol='square'),
+                name=f'Longest ORF (frame {lo["frame"]}, dom={lo["dominance_ratio"]})',
+            ))
+
+            shift_nt = valid_details[0]['shift_position']
+            fig.add_vline(
+                x=shift_nt,
+                line_dash='dash', line_color='black', line_width=1.5,
+                annotation_text=f'Frameshift site  nt {shift_nt}',
+                annotation_position='top left',
+                annotation_font=dict(color='black', size=11),
+            )
+
+            first_neighbor_start = min(d['neighboring_orf']['start'] for d in valid_details)
+            last_neighbor_end    = max(d['neighboring_orf']['end']   for d in valid_details)
+            x_left  = max(lo['start'], first_neighbor_start - 500)
+            x_right = last_neighbor_end + 100
+
+            fig.add_annotation(
+                x=x_left, y=y_lo, xref='x', yref='y',
+                text=f'← ORF start @ nt {lo["start"]}',
+                showarrow=False, xanchor='left',
+                font=dict(color='navy', size=10, family='monospace'),
+                bgcolor='rgba(255,255,255,0.75)',
+            )
+
+            fig.update_layout(
+                title=f'Frameshift Sites — {seq_id}',
+                xaxis=dict(title='Nucleotide Position', range=[x_left, x_right]),
+                yaxis=dict(
+                    tickvals=list(LANE.values()),
+                    ticktext=[f'Frame {f}' for f in LANE],
+                    range=[-0.6, 2.6],
+                ),
+                height=450,
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                legend=dict(x=1.01, y=1, xanchor='left'),
+            )
+
+            plots.append({"seq_id": seq_id, "html": fig.to_html(full_html=False, include_plotlyjs=False)})
+
+        return plots
+
+    # ------------------------------------------------------------------
     # Dispatcher
     # ------------------------------------------------------------------
     def produce_report(self, output_format: str) -> None:
@@ -469,4 +663,12 @@ class OrfReport:
             sys.stderr.write(
                 f"Unsupported report format: '{output_format}'. "
                 "Use 'json', 'csv', 'html', or 'frameshift_plot'.\n"
-            
+            )
+
+
+
+
+
+
+
+

@@ -266,7 +266,7 @@ def build_findings_html(comparison_rows: list[dict], total_fs: int) -> str:
     </div>"""
     return findings_html
 
-def generate_html_report(all_records_data: list[dict], output_path:str = "report.html", frameshift_plot_html:str = "") -> None:
+def generate_html_report(all_records_data: list[dict], output_path:str = "report.html", frameshift_plots:list[dict] = None) -> None:
     """
     Purpose:
         Generates multi-tab HTML report summarizing ORF and frameshift detection analysis
@@ -402,6 +402,26 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
     if mers_list:
         compare_note += f" {', '.join(mers_list)} are MERS-CoV sequences."
 
+    # Build per-sequence plot tab panels
+    plot_tab_buttons = ""
+    plot_panels_html = ""
+
+    if frameshift_plots:
+        for j, entry in enumerate(frameshift_plots):
+            pid    = f"fp{j}"
+            active = "active" if j == 0 else ""
+            label  = entry["seq_id"]
+            plot_tab_buttons += (
+                f'<button class="seq-tab {active}" '
+                f'onclick="switchPlot(\'{pid}\')">{label}</button>\n'
+            )
+            plot_panels_html += (
+                f'<div id="plot-{pid}" class="seq-panel {active}">'
+                f'{entry["html"]}'
+                f'</div>'
+            )
+    else:
+        plot_panels_html = '<p class="no-fs">No frameshift plots generated.</p>'
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -529,7 +549,8 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
       candidates across all 3 reading frames. The dashed vertical line marks the
       detected frameshift site.
     </div>
-    {frameshift_plot_html}
+    <div class="seq-tabs">{plot_tab_buttons}</div>
+    {plot_panels_html}
   </div>
   
   <div id="tab-glossary" class="tab-content">
@@ -577,6 +598,12 @@ def generate_html_report(all_records_data: list[dict], output_path:str = "report
       document.querySelectorAll('.seq-panel').forEach(t => t.classList.remove('active'));
       document.querySelector('[onclick="switchSeq(\\''+id+'\\')"]').classList.add('active');
       document.getElementById('seq-'+id).classList.add('active');
+    }}
+    function switchPlot(id) {{
+      document.querySelectorAll('[id^="plot-"]').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('[onclick^="switchPlot"]').forEach(t => t.classList.remove('active'));
+      document.getElementById('plot-'+id).classList.add('active');
+      document.querySelector('[onclick="switchPlot(\\''+id+'\\')"]').classList.add('active');
     }}
   </script>
 </body>

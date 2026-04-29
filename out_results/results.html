@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Coronavirus ORF Analysis Report</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#222;font-size:14px;}
+    header{background:#1a1a2e;color:white;padding:1.5rem 2rem;}
+    header h1{font-size:1.4rem;font-weight:500;}
+    header p{opacity:.65;font-size:.85rem;margin-top:4px;}
+    .badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+    .badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+    .badge-ref{background:#B5D4F4;color:#0C447C;}
+    .badge-sars1{background:#CECBF6;color:#3C3489;}
+    .main-tabs{display:flex;gap:0;border-bottom:1px solid #ddd;background:white;padding:0 1.5rem;}
+    .main-tab{padding:10px 18px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:#666;background:none;border-top:none;border-left:none;border-right:none;}
+    .main-tab.active{color:#1a1a2e;border-bottom:2px solid #1a1a2e;font-weight:500;}
+    .tab-content{display:none;padding:1.5rem;max-width:1300px;margin:0 auto;}
+    .tab-content.active{display:block;}
+    .summary-banner{background:#E6F1FB;border-left:3px solid #185FA5;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:1.25rem;font-size:13px;line-height:1.6;color:#0C447C;}
+    .metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem;}
+    .metric-card{background:#f8f8f8;border-radius:8px;padding:12px 14px;}
+    .metric-label{font-size:11px;color:#888;margin-bottom:4px;}
+    .metric-val{font-size:22px;font-weight:500;color:#1a1a2e;}
+    .section-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:#888;margin:1.25rem 0 .6rem;}
+    .cov-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+    .cov-label{width:150px;font-size:12px;flex-shrink:0;}
+    .cov-bg{flex:1;background:#e5e5e5;border-radius:4px;height:8px;}
+    .cov-bar{height:8px;border-radius:4px;}
+    .cov-pct{width:36px;font-size:12px;text-align:right;color:#666;}
+    .tbl-scroll{overflow-x:auto;max-height:380px;overflow-y:auto;border:1px solid #eee;border-radius:6px;}
+    .orf-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+    .orf-tbl th{background:#1a1a2e;color:white;padding:6px 10px;text-align:left;position:sticky;top:0;font-size:11px;font-weight:500;}
+    .orf-tbl td{padding:5px 10px;border-bottom:1px solid #f0f0f0;}
+    .orf-tbl tr:hover td{background:#fafafa;}
+    .gene-col{color:#BA7517;font-weight:500;}
+    .fdot{display:inline-block;color:white;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500;margin:1px;}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:1rem;}
+    .fs-card{border-left:3px solid #A32D2D;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:1rem;background:#fff8f8;}
+    .fs-title{font-size:13px;font-weight:500;color:#A32D2D;margin-bottom:5px;}
+    .fs-loc{font-size:12px;color:#444;margin-bottom:6px;}
+    .stop-warn{font-size:12px;color:#791F1F;background:#FCEBEB;border-radius:6px;padding:6px 10px;margin:6px 0;line-height:1.5;}
+    .no-stop{font-size:12px;color:#854F0B;background:#FAEEDA;border-radius:6px;padding:6px 10px;margin:6px 0;}
+    .no-fs{color:#3B6D11;font-style:italic;font-size:13px;}
+    .codon-label{font-size:11px;color:#888;margin-top:8px;margin-bottom:3px;}
+    .codon-row{display:flex;flex-wrap:wrap;gap:4px;}
+    .codon{padding:3px 6px;border-radius:4px;font-family:monospace;font-size:12px;font-weight:500;}
+    .codon-orig{background:#EAF3DE;color:#27500A;}
+    .codon-shift{background:#FAEEDA;color:#633806;}
+    .codon-stop{background:#FCEBEB;color:#791F1F;}
+    .ref-banner{background:#E6F1FB;border-left:3px solid #185FA5;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#0C447C;line-height:1.5;}
+    .sars1-banner{background:#EEEDFE;border-left:3px solid #534AB7;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#3C3489;line-height:1.5;}
+    .seq-tabs{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+    .seq-tab{padding:5px 14px;font-size:12px;border-radius:20px;border:1px solid #ccc;cursor:pointer;background:white;color:#666;}
+    .seq-tab.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
+    .seq-panel{display:none;}
+    .seq-panel.active{display:block;}
+    .comp-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+    .comp-tbl th{text-align:left;padding:9px 14px;background:#f0f0f0;font-weight:500;font-size:12px;border-bottom:2px solid #ddd;}
+    .th-sub{font-weight:400;color:#888;font-size:11px;}
+    .comp-tbl td{padding:8px 14px;border-bottom:1px solid #eee;}
+    .comp-tbl tr:hover td{background:#fafafa;}
+    .metric-col{color:#444;font-weight:500;}
+    .ref-col{color:#185FA5;font-weight:500;}
+    .finding-card{border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:1rem;font-size:13px;line-height:1.6;}
+    .finding-warn{background:#fff8f8;border-left:3px solid #A32D2D;}
+    .finding-info{background:#E6F1FB;border-left:3px solid #185FA5;}
+    .finding-title{font-weight:500;margin-bottom:5px;}
+    .finding-body{color:#444;}
+    .glossary-item{border:1px solid #eee;border-radius:8px;padding:12px 16px;margin-bottom:10px;}
+    .glossary-term{font-weight:500;font-size:13px;margin-bottom:4px;}
+    .glossary-def{font-size:13px;color:#555;line-height:1.6;}
+    .finding-refs{margin-top:8px;font-size:11px;color:#888;line-height:1.7;}
+    .finding-refs a{color:#A32D2D;text-decoration:none;}
+    .finding-refs a:hover{text-decoration:underline;}
+    @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+  </style>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Coronavirus ORF &amp; frameshift analysis report</h1>
+    <p>Generated April 28, 2026 at 20:56 &middot; 4 sequence(s) analyzed</p>
+    <div class="badges">
+      <span class="badge badge-ref">NC_045512.2 &mdash; SARS-CoV-2 reference</span><span class="badge badge-sars1">NC_004718.3 &mdash; SARS-CoV-1</span><span class="badge badge-ref">OR575624.1 &mdash; SARS-CoV-2 variant</span><span class="badge badge-ref">NC_009942.1 &mdash; West Nile virus lineage 1, complete genome</span>
+    </div>
+  </header>
+
+  <div class="main-tabs">
+    <button class="main-tab active" onclick="switchTab('overview')">Overview</button>
+    <button class="main-tab" onclick="switchTab('sequences')">Per-sequence results</button>
+    <button class="main-tab" onclick="switchTab('compare')">Comparison</button>
+    <button class="main-tab" onclick="switchTab('plot')">Frameshift Plot</button>
+    <button class="main-tab" onclick="switchTab('glossary')">Glossary</button>
+  </div>
+
+  <div id="tab-overview" class="tab-content active">
+    <div class="summary-banner">
+      This tool scanned 4 coronavirus genome(s) for open reading frames (ORFs) &mdash; the regions that encode proteins &mdash; and checked whether any contain frameshifts, which are mutations that shift how the sequence is read and often destroy protein function.
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-label">Sequences analyzed</div><div class="metric-val">4</div></div>
+      <div class="metric-card"><div class="metric-label">Total ORFs found</div><div class="metric-val">189</div></div>
+      <div class="metric-card"><div class="metric-label">Frameshifts detected</div><div class="metric-val">4</div></div>
+    </div>
+    <p class="section-title">Key findings</p>
+    
+    <div class="finding-card finding-warn">
+      <div class="finding-title">Frameshifts detected in all 4 sequences within ORF1a</div>
+      <p class="finding-body">All sequences have a frameshift inside ORF1a (the largest gene, encoding replication machinery). In each case the shifted reading frame immediately hits a stop codon, truncating the protein. This is consistent with the known programmed ribosomal frameshift at the ORF1a/ORF1b boundary — a feature coronaviruses use intentionally to produce two different proteins from the same genomic region.</p>
+      <sup><a href="#ref-10" style="color:#A32D2D;">[10]</a><a href="#ref-11" style="color:#A32D2D;">[11]</a><a href="#ref-12" style="color:#A32D2D;">[12]</a><a href="#ref-14" style="color:#A32D2D;">[14]</a></sup>
+    </div>
+    <div class="finding-card finding-info">
+      <div class="finding-title">ORF counts vary across sequences (31 to 65)</div>
+      <p class="finding-body">NC_009942.1 has the fewest detected ORFs (31) while NC_004718.3 has the most (65). This likely reflects genuine differences in genome organization between strains rather than a detection error.<sup><a href="#ref-13" style="color:#185FA5;">[13]</a></sup></p>
+    </div>
+  </div>
+
+  <div id="tab-sequences" class="tab-content">
+    <div class="seq-tabs"><button class="seq-tab active" onclick="switchSeq('s0')">NC_045512.2</button>
+<button class="seq-tab " onclick="switchSeq('s1')">NC_004718.3</button>
+<button class="seq-tab " onclick="switchSeq('s2')">OR575624.1</button>
+<button class="seq-tab " onclick="switchSeq('s3')">NC_009942.1</button>
+</div>
+    
+        <div id="seq-s0" class="seq-panel active">
+          <div class="ref-banner"><strong>SARS-CoV-2 reference genome</strong> — NC_045512.2 is the Wuhan-Hu-1 strain deposited when SARS-CoV-2 was first sequenced in 2020. This is the standard reference for all SARS-CoV-2 research.</div>
+          <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-label">Total ORFs</div><div class="metric-val">47</div></div>
+            <div class="metric-card"><div class="metric-label">Frameshift at</div><div class="metric-val" style="font-size:16px;">pos 13,310</div></div>
+            <div class="metric-card"><div class="metric-label">Spike ORFs</div><div class="metric-val">3</div></div>
+            <div class="metric-card"><div class="metric-label">Sequence length</div><div class="metric-val" style="font-size:15px;">29,903 bp</div></div>
+          </div>
+          <div class="two-col">
+            <div>
+              <p class="section-title">ORF table</p>
+              <div class="tbl-scroll">
+                <table class="orf-tbl">
+                  <thead><tr><th>Frame</th><th>Start</th><th>End</th><th>Length (bp)</th><th>Length (aa)</th><th>Known gene</th></tr></thead>
+                  <tbody><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>13,767</td><td>21,555</td>
+          <td>7,788</td><td>2,596</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>25,392</td><td>26,220</td>
+          <td>828</td><td>276</td>
+          <td class="gene-col">ORF3a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>26,244</td><td>26,472</td>
+          <td>228</td><td>76</td>
+          <td class="gene-col">E protein</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>27,201</td><td>27,387</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF6</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>27,393</td><td>27,759</td>
+          <td>366</td><td>122</td>
+          <td class="gene-col">ORF7a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>265</td><td>13,483</td>
+          <td>13,218</td><td>4,406</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>15,460</td><td>15,667</td>
+          <td>207</td><td>69</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>19,147</td><td>19,303</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>21,535</td><td>25,384</td>
+          <td>3,849</td><td>1,283</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>26,692</td><td>26,872</td>
+          <td>180</td><td>60</td>
+          <td class="gene-col">M protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>28,273</td><td>29,533</td>
+          <td>1,260</td><td>420</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>725</td><td>881</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>2,957</td><td>3,206</td>
+          <td>249</td><td>83</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>3,947</td><td>4,103</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>5,918</td><td>6,089</td>
+          <td>171</td><td>57</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>6,155</td><td>6,350</td>
+          <td>195</td><td>65</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>7,547</td><td>7,709</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>10,214</td><td>10,400</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>13,310</td><td>13,466</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>21,935</td><td>22,199</td>
+          <td>264</td><td>88</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>25,523</td><td>25,697</td>
+          <td>174</td><td>58</td>
+          <td class="gene-col">ORF3a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>26,522</td><td>27,191</td>
+          <td>669</td><td>223</td>
+          <td class="gene-col">M protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>27,893</td><td>28,259</td>
+          <td>366</td><td>122</td>
+          <td class="gene-col">ORF8</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>28,283</td><td>28,577</td>
+          <td>294</td><td>98</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>28,733</td><td>28,955</td>
+          <td>222</td><td>74</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>63</td><td>219</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>3,561</td><td>3,723</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>8,865</td><td>9,060</td>
+          <td>195</td><td>65</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>11,718</td><td>11,925</td>
+          <td>207</td><td>69</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>16,353</td><td>16,545</td>
+          <td>192</td><td>64</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>29,211</td><td>29,388</td>
+          <td>177</td><td>59</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>2,899</td><td>3,100</td>
+          <td>201</td><td>67</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>4,096</td><td>4,318</td>
+          <td>222</td><td>74</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>6,466</td><td>6,706</td>
+          <td>240</td><td>80</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>16,630</td><td>16,789</td>
+          <td>159</td><td>53</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>28,333</td><td>28,513</td>
+          <td>180</td><td>60</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>29,236</td><td>29,482</td>
+          <td>246</td><td>82</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>2,693</td><td>2,870</td>
+          <td>177</td><td>59</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>5,792</td><td>5,978</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>6,581</td><td>6,830</td>
+          <td>249</td><td>83</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>11,579</td><td>11,753</td>
+          <td>174</td><td>58</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>14,747</td><td>14,912</td>
+          <td>165</td><td>55</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>17,417</td><td>17,621</td>
+          <td>204</td><td>68</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>20,954</td><td>21,107</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>23,414</td><td>23,717</td>
+          <td>303</td><td>101</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>27,446</td><td>27,614</td>
+          <td>168</td><td>56</td>
+          <td class="gene-col">ORF7a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>28,214</td><td>28,376</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">N protein</td></tr></tbody>
+                </table>
+              </div>
+              <div style="margin-top:10px;"><span class="fdot" style="background:#639922">Frame 0: 11</span> <span class="fdot" style="background:#185FA5">Frame 1: 12</span> <span class="fdot" style="background:#7F77DD">Frame 2: 24</span></div>
+            </div>
+            <div>
+              <p class="section-title">Gene coverage</p>
+              
+        <div class="cov-row">
+          <span class="cov-label">ORF1a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">nsp1-10</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">nsp12-16 (RdRp)</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">Spike (S)</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF3a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">E protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">M protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF6</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF7a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF7b</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:2%;background:#A32D2D"></div></div>
+          <span class="cov-pct">2%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF8</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">N protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF10</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+            </div>
+          </div>
+          <p class="section-title">Frameshift analysis</p>
+          
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,310</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 9 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ATG</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">GTG</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">CTG</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CAG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">TGT</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">ACC</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TGC</span><span class="codon codon-stop">TAA</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">CCC</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">GGG</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">ACT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AGT</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,305</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">TAA</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">CCC</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">GGG</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">AAA</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">AGT</span><span class="codon codon-shift">ATG</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">CAA</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">GTG</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">ATG</span><span class="codon codon-shift">ACC</span><span class="codon codon-shift">CTG</span><span class="codon codon-shift">TGG</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TTA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">TTA</span><span class="codon codon-shift">AAA</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,431</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 11 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CAT</span><span class="codon codon-orig">GCT</span><span class="codon codon-orig">TCA</span><span class="codon codon-orig">GTC</span><span class="codon codon-orig">AGC</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">ATC</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">GCA</span><span class="codon codon-orig">GCC</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">TGC</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">CAG</span><span class="codon codon-shift">CTG</span><span class="codon codon-shift">ATG</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">CGT</span><span class="codon codon-shift">TTT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">ACG</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">AAG</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">AGC</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,563</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 5 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">GTA</span><span class="codon codon-orig">GCT</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">GCT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">TTC</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">CGC</span><span class="codon codon-orig">TTC</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">GAC</span><span class="codon codon-orig">GAA</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">AGC</span><span class="codon codon-shift">TGG</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">TGC</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">ATT</span><span class="codon codon-shift">CCT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">AAC</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TCG</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">CCA</span><span class="codon codon-shift">AGA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GGA</span><span class="codon codon-shift">CGA</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,608</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TGA</strong> at codon 6 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CAA</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">GAC</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">GAC</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">ATT</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">ACT</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">AGA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GGA</span><span class="codon codon-shift">CGA</span><span class="codon codon-shift">AGA</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">CAA</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">AAT</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">TTA</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">AGT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">GAG</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">CAC</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,442</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TGA</strong> at codon 2 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CAG</span><span class="codon codon-orig">CTG</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">CGT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">ACG</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">AGC</span><span class="codon codon-orig">CCG</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">ACC</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">AGC</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">ATC</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">GCA</span><span class="codon codon-shift">GCC</span><span class="codon codon-shift">CGT</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">CCG</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,550</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CTA</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">AGC</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">ATT</span><span class="codon codon-orig">CCT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">TCG</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">CCA</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">TAC</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">GAT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">GCT</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">GCT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">CGC</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">CAA</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,568</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">TGG</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">ATT</span><span class="codon codon-orig">CCT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">TCG</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">CCA</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">GGA</span><span class="codon codon-orig">CGA</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">TGA</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">GGT</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">GCT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">CGC</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">CAA</span><span class="codon codon-shift">GAA</span><span class="codon codon-shift">AAG</span><span class="codon codon-shift">GAC</span><span class="codon codon-shift">GAA</span><span class="codon codon-shift">GAT</span><span class="codon codon-shift">GAC</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,679</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CCA</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">GGA</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">TCC</span><span class="codon codon-orig">AGC</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">TGA</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">CAA</span><span class="codon codon-shift">CAT</span><span class="codon codon-shift">GAA</span><span class="codon codon-shift">GAA</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">ATT</span><span class="codon codon-shift">TAT</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">TTA</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">AAG</span><span class="codon codon-shift">GAT</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">CCA</span><span class="codon codon-shift">GCT</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">GCT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CAT</span><span class="codon codon-shift">GAC</span></div>
+        </div>
+        </div>
+        <div id="seq-s1" class="seq-panel ">
+          <div class="sars1-banner"><strong>SARS-CoV-1 strain</strong> — This sequence is from the original 2003 SARS outbreak, a related but distinct coronavirus from SARS-CoV-2.</div>
+          <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-label">Total ORFs</div><div class="metric-val">65</div></div>
+            <div class="metric-card"><div class="metric-label">Frameshift at</div><div class="metric-val" style="font-size:16px;">pos 13,267</div></div>
+            <div class="metric-card"><div class="metric-label">Spike ORFs</div><div class="metric-val">9</div></div>
+            <div class="metric-card"><div class="metric-label">Sequence length</div><div class="metric-val" style="font-size:15px;">29,751 bp</div></div>
+          </div>
+          <div class="two-col">
+            <div>
+              <p class="section-title">ORF table</p>
+              <div class="tbl-scroll">
+                <table class="orf-tbl">
+                  <thead><tr><th>Frame</th><th>Start</th><th>End</th><th>Length (bp)</th><th>Length (aa)</th><th>Known gene</th></tr></thead>
+                  <tbody><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>264</td><td>13,413</td>
+          <td>13,149</td><td>4,383</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>14,187</td><td>14,358</td>
+          <td>171</td><td>57</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>16,512</td><td>16,695</td>
+          <td>183</td><td>61</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>20,520</td><td>20,709</td>
+          <td>189</td><td>63</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>22,731</td><td>22,926</td>
+          <td>195</td><td>65</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>24,156</td><td>24,315</td>
+          <td>159</td><td>53</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>24,609</td><td>24,780</td>
+          <td>171</td><td>57</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>24,816</td><td>25,017</td>
+          <td>201</td><td>67</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>26,397</td><td>27,063</td>
+          <td>666</td><td>222</td>
+          <td class="gene-col">M protein</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>28,119</td><td>29,388</td>
+          <td>1,269</td><td>423</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>733</td><td>1,225</td>
+          <td>492</td><td>164</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>2,992</td><td>3,295</td>
+          <td>303</td><td>101</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>3,565</td><td>3,781</td>
+          <td>216</td><td>72</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>3,901</td><td>4,054</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>7,498</td><td>7,684</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>8,590</td><td>8,755</td>
+          <td>165</td><td>55</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>8,827</td><td>9,013</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>10,066</td><td>10,330</td>
+          <td>264</td><td>88</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>11,020</td><td>11,176</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>12,424</td><td>12,589</td>
+          <td>165</td><td>55</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>12,688</td><td>12,871</td>
+          <td>183</td><td>61</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>25,267</td><td>26,092</td>
+          <td>825</td><td>275</td>
+          <td class="gene-col">ORF3a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>26,116</td><td>26,347</td>
+          <td>231</td><td>77</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>27,073</td><td>27,265</td>
+          <td>192</td><td>64</td>
+          <td class="gene-col">M protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>28,129</td><td>28,426</td>
+          <td>297</td><td>99</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>28,582</td><td>28,795</td>
+          <td>213</td><td>71</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>13,598</td><td>21,485</td>
+          <td>7,887</td><td>2,629</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>21,491</td><td>25,259</td>
+          <td>3,768</td><td>1,256</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>25,688</td><td>26,153</td>
+          <td>465</td><td>155</td>
+          <td class="gene-col">ORF3a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>27,272</td><td>27,641</td>
+          <td>369</td><td>123</td>
+          <td class="gene-col">ORF7a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>27,863</td><td>28,118</td>
+          <td>255</td><td>85</td>
+          <td class="gene-col">ORF8</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>54</td><td>210</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>3,537</td><td>3,699</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>10,476</td><td>10,653</td>
+          <td>177</td><td>59</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>19,527</td><td>19,740</td>
+          <td>213</td><td>71</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>22,359</td><td>22,527</td>
+          <td>168</td><td>56</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>24,354</td><td>24,516</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>24,717</td><td>24,879</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>29,085</td><td>29,259</td>
+          <td>174</td><td>58</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>2,923</td><td>3,076</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>6,277</td><td>6,472</td>
+          <td>195</td><td>65</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>9,916</td><td>10,198</td>
+          <td>282</td><td>94</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>10,663</td><td>10,945</td>
+          <td>282</td><td>94</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>11,497</td><td>11,671</td>
+          <td>174</td><td>58</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>12,652</td><td>12,811</td>
+          <td>159</td><td>53</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>14,665</td><td>14,830</td>
+          <td>165</td><td>55</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>15,454</td><td>15,667</td>
+          <td>213</td><td>71</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>16,555</td><td>16,711</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>17,344</td><td>17,539</td>
+          <td>195</td><td>65</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>17,776</td><td>17,929</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>19,621</td><td>19,810</td>
+          <td>189</td><td>63</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>20,872</td><td>21,121</td>
+          <td>249</td><td>83</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>26,095</td><td>26,287</td>
+          <td>192</td><td>64</td>
+          <td class="gene-col">ORF3a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>26,305</td><td>26,464</td>
+          <td>159</td><td>53</td>
+          <td class="gene-col">E protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>27,121</td><td>27,334</td>
+          <td>213</td><td>71</td>
+          <td class="gene-col">ORF6</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>27,736</td><td>27,964</td>
+          <td>228</td><td>76</td>
+          <td class="gene-col">ORF7b</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>365</td><td>527</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>2,669</td><td>2,846</td>
+          <td>177</td><td>59</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>4,916</td><td>5,069</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>5,765</td><td>5,966</td>
+          <td>201</td><td>67</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>7,769</td><td>8,000</td>
+          <td>231</td><td>77</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>10,838</td><td>11,024</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>12,476</td><td>12,656</td>
+          <td>180</td><td>60</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>19,148</td><td>19,319</td>
+          <td>171</td><td>57</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>22,565</td><td>22,724</td>
+          <td>159</td><td>53</td>
+          <td class="gene-col">Spike (S)</td></tr></tbody>
+                </table>
+              </div>
+              <div style="margin-top:10px;"><span class="fdot" style="background:#639922">Frame 0: 18</span> <span class="fdot" style="background:#185FA5">Frame 1: 33</span> <span class="fdot" style="background:#7F77DD">Frame 2: 14</span></div>
+            </div>
+            <div>
+              <p class="section-title">Gene coverage</p>
+              
+        <div class="cov-row">
+          <span class="cov-label">ORF1a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">nsp1-10</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">nsp12-16 (RdRp)</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">Spike (S)</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF3a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">E protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">M protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF6</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF7a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:73%;background:#BA7517"></div></div>
+          <span class="cov-pct">73%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF7b</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF8</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">N protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF10</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+            </div>
+          </div>
+          <p class="section-title">Frameshift analysis</p>
+          
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,267</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TGA</strong> at codon 1 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ATG</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">CAG</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CAG</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">CCG</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">GCG</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">GGA</span><span class="codon codon-orig">AAG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-stop">TGA</span><span class="codon codon-shift">CCC</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">GGG</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">ACT</span><span class="codon codon-stop">TAG</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">CTG</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">CGT</span><span class="codon codon-shift">CTG</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">GTG</span><span class="codon codon-shift">GAA</span><span class="codon codon-shift">AGG</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,378</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ATG</span><span class="codon codon-orig">CAT</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CGT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">ACG</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">AGC</span><span class="codon codon-orig">CCG</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">GTG</span><span class="codon codon-orig">CGG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">TGC</span><span class="codon codon-shift">ATC</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">GCA</span><span class="codon codon-shift">GCC</span><span class="codon codon-shift">CGT</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">CCG</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">GGC</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,598</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 2 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ATG</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CAT</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">GAG</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">ATT</span><span class="codon codon-orig">TAT</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">CCA</span><span class="codon codon-orig">GCG</span><span class="codon codon-orig">GTT</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">GTC</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">CCA</span><span class="codon codon-shift">ACA</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">AGA</span><span class="codon codon-shift">GAC</span><span class="codon codon-shift">TAT</span><span class="codon codon-shift">TTA</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">GGT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">AGA</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TCC</span><span class="codon codon-shift">AGC</span><span class="codon codon-shift">GGT</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,360</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CCT</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">CTG</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">CAT</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CGT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">ACG</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">AGC</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">CTT</span><span class="codon codon-shift">GAT</span><span class="codon codon-shift">GCA</span><span class="codon codon-shift">GTC</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">GGA</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">ATC</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">GCA</span><span class="codon codon-shift">GCC</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,486</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CGA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">CCT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">CTG</span><span class="codon codon-orig">TCG</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">CCA</span><span class="codon codon-orig">GGA</span><span class="codon codon-orig">GAA</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">GAA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">GCT</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">GCA</span><span class="codon codon-shift">AAG</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">CGC</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">CAG</span><span class="codon codon-shift">GAG</span><span class="codon codon-shift">AAG</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,597</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">TAT</span><span class="codon codon-orig">GTC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">CCA</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">GAC</span><span class="codon codon-orig">TAT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">TCC</span><span class="codon codon-orig">AGC</span><span class="codon codon-orig">GGT</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">ATG</span><span class="codon codon-shift">TCT</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">CAA</span><span class="codon codon-shift">CAT</span><span class="codon codon-shift">GAA</span><span class="codon codon-shift">GAG</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">ATT</span><span class="codon codon-shift">TAT</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GAT</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">CCA</span><span class="codon codon-shift">GCG</span><span class="codon codon-shift">GTT</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,223</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TGA</strong> at codon 2 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">TGA</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">AGG</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">CGT</span><span class="codon codon-orig">CCA</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">CCC</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">GGG</span><span class="codon codon-orig">TTT</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">ACT</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">AAG</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">ACG</span><span class="codon codon-shift">TCC</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">CCA</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">GTG</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">ATG</span><span class="codon codon-shift">ACC</span><span class="codon codon-shift">CAG</span><span class="codon codon-shift">TGG</span><span class="codon codon-shift">GTT</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,349</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TGA</strong> at codon 5 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ACT</span><span class="codon codon-orig">CCG</span><span class="codon codon-orig">CGA</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">GCA</span><span class="codon codon-orig">GTC</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">GGA</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">ATC</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">GGT</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">TCC</span><span class="codon codon-shift">GCG</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">CCT</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">CTG</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">ATG</span><span class="codon codon-shift">CAT</span><span class="codon codon-shift">CAA</span><span class="codon codon-shift">CGT</span><span class="codon codon-shift">TTT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">ACG</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">CGG</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,481</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 14 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">TAC</span><span class="codon codon-orig">AAC</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">GCT</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">GCA</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">TTC</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">CGC</span><span class="codon codon-orig">TTC</span><span class="codon codon-orig">CAG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">CAA</span><span class="codon codon-shift">CGA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">TGG</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">CCT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">AAC</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">CTG</span><span class="codon codon-shift">TCG</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">CCA</span></div>
+        </div>
+        </div>
+        <div id="seq-s2" class="seq-panel ">
+          <div class="ref-banner"><strong>SARS-CoV-2 variant</strong> — Severe acute respiratory syndrome coronavirus 2 isolate SARS-CoV-2/human/CHE/SARS-CoV-2 Omicron BA.2/2022, complete genome</div>
+          <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-label">Total ORFs</div><div class="metric-val">46</div></div>
+            <div class="metric-card"><div class="metric-label">Frameshift at</div><div class="metric-val" style="font-size:16px;">pos 13,298</div></div>
+            <div class="metric-card"><div class="metric-label">Spike ORFs</div><div class="metric-val">3</div></div>
+            <div class="metric-card"><div class="metric-label">Sequence length</div><div class="metric-val" style="font-size:15px;">29,784 bp</div></div>
+          </div>
+          <div class="two-col">
+            <div>
+              <p class="section-title">ORF table</p>
+              <div class="tbl-scroll">
+                <table class="orf-tbl">
+                  <thead><tr><th>Frame</th><th>Start</th><th>End</th><th>Length (bp)</th><th>Length (aa)</th><th>Known gene</th></tr></thead>
+                  <tbody><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>13,755</td><td>21,543</td>
+          <td>7,788</td><td>2,596</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>25,371</td><td>26,199</td>
+          <td>828</td><td>276</td>
+          <td class="gene-col">ORF3a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>26,223</td><td>26,451</td>
+          <td>228</td><td>76</td>
+          <td class="gene-col">E protein</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>27,180</td><td>27,366</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF6</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>27,372</td><td>27,738</td>
+          <td>366</td><td>122</td>
+          <td class="gene-col">ORF7a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>262</td><td>13,471</td>
+          <td>13,209</td><td>4,403</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>15,448</td><td>15,655</td>
+          <td>207</td><td>69</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>19,135</td><td>19,291</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>21,523</td><td>25,363</td>
+          <td>3,840</td><td>1,280</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>26,671</td><td>26,839</td>
+          <td>168</td><td>56</td>
+          <td class="gene-col">M protein</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>28,252</td><td>29,503</td>
+          <td>1,251</td><td>417</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>722</td><td>878</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>2,954</td><td>3,203</td>
+          <td>249</td><td>83</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>3,944</td><td>4,100</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>5,915</td><td>6,086</td>
+          <td>171</td><td>57</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>6,152</td><td>6,347</td>
+          <td>195</td><td>65</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>7,544</td><td>7,706</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>10,211</td><td>10,397</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>13,298</td><td>13,454</td>
+          <td>156</td><td>52</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>21,914</td><td>22,178</td>
+          <td>264</td><td>88</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>25,502</td><td>25,676</td>
+          <td>174</td><td>58</td>
+          <td class="gene-col">ORF3a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>26,501</td><td>27,170</td>
+          <td>669</td><td>223</td>
+          <td class="gene-col">M protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>27,872</td><td>28,238</td>
+          <td>366</td><td>122</td>
+          <td class="gene-col">ORF8</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>28,262</td><td>28,547</td>
+          <td>285</td><td>95</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>28,703</td><td>28,925</td>
+          <td>222</td><td>74</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>2,595</td><td>2,772</td>
+          <td>177</td><td>59</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>5,694</td><td>5,880</td>
+          <td>186</td><td>62</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>6,483</td><td>6,732</td>
+          <td>249</td><td>83</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>11,472</td><td>11,646</td>
+          <td>174</td><td>58</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>14,640</td><td>14,805</td>
+          <td>165</td><td>55</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>17,310</td><td>17,514</td>
+          <td>204</td><td>68</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>20,838</td><td>20,991</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>23,298</td><td>23,601</td>
+          <td>303</td><td>101</td>
+          <td class="gene-col">Spike (S)</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>27,330</td><td>27,498</td>
+          <td>168</td><td>56</td>
+          <td class="gene-col">ORF7a</td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>28,098</td><td>28,260</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">ORF8</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>3,463</td><td>3,625</td>
+          <td>162</td><td>54</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>8,758</td><td>8,953</td>
+          <td>195</td><td>65</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>11,611</td><td>11,818</td>
+          <td>207</td><td>69</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>16,246</td><td>16,438</td>
+          <td>192</td><td>64</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>29,095</td><td>29,272</td>
+          <td>177</td><td>59</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>2,801</td><td>3,002</td>
+          <td>201</td><td>67</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>3,998</td><td>4,220</td>
+          <td>222</td><td>74</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>6,368</td><td>6,608</td>
+          <td>240</td><td>80</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>16,523</td><td>16,682</td>
+          <td>159</td><td>53</td>
+          <td class="gene-col">ORF1a</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>28,217</td><td>28,397</td>
+          <td>180</td><td>60</td>
+          <td class="gene-col">N protein</td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>29,120</td><td>29,366</td>
+          <td>246</td><td>82</td>
+          <td class="gene-col">N protein</td></tr></tbody>
+                </table>
+              </div>
+              <div style="margin-top:10px;"><span class="fdot" style="background:#639922">Frame 0: 15</span> <span class="fdot" style="background:#185FA5">Frame 1: 11</span> <span class="fdot" style="background:#7F77DD">Frame 2: 20</span></div>
+            </div>
+            <div>
+              <p class="section-title">Gene coverage</p>
+              
+        <div class="cov-row">
+          <span class="cov-label">ORF1a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">nsp1-10</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">nsp12-16 (RdRp)</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">Spike (S)</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF3a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">E protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:90%;background:#639922"></div></div>
+          <span class="cov-pct">90%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">M protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF6</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF7a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF7b</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:11%;background:#A32D2D"></div></div>
+          <span class="cov-pct">11%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF8</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">N protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF10</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+            </div>
+          </div>
+          <p class="section-title">Frameshift analysis</p>
+          
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,298</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 9 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ATG</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">GTG</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">CTG</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CAG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">TGT</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">ACC</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TGC</span><span class="codon codon-stop">TAA</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">CCC</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">GGG</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">ACT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AGT</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,335</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">GGG</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">CTG</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">CGT</span><span class="codon codon-orig">CTG</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">TAT</span><span class="codon codon-orig">GTG</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">AGG</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">CTG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TTA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">TTA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">CAG</span><span class="codon codon-shift">TCT</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">CCG</span><span class="codon codon-shift">TCT</span><span class="codon codon-shift">GCG</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">GGA</span><span class="codon codon-shift">AAG</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">ATG</span><span class="codon codon-shift">GCT</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,443</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 3 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ATC</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">GCA</span><span class="codon codon-orig">GCC</span><span class="codon codon-orig">CGT</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CCG</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">GGC</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">GGC</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">CGT</span><span class="codon codon-shift">TTT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">ACG</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">AAG</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">AGC</span><span class="codon codon-shift">CCG</span><span class="codon codon-shift">TCT</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">ACC</span><span class="codon codon-shift">GTG</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AGG</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,461</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAG</strong> at codon 15 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">TGC</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">GCA</span><span class="codon codon-orig">GCC</span><span class="codon codon-orig">CGT</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CCG</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">GGC</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">GGC</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">GTC</span><span class="codon codon-orig">GTA</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">CGG</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">AAG</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">AGC</span><span class="codon codon-shift">CCG</span><span class="codon codon-shift">TCT</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">ACC</span><span class="codon codon-shift">GTG</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AGG</span><span class="codon codon-shift">CAC</span><span class="codon codon-stop">TAG</span><span class="codon codon-shift">TAC</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">CGT</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 13,572</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 3 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CTA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">CGC</span><span class="codon codon-orig">TTC</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">GAC</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">GAC</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">ATT</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">TCT</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">AAA</span><span class="codon codon-shift">AAC</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TCG</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">CCA</span><span class="codon codon-shift">AGA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GGA</span><span class="codon codon-shift">CGA</span><span class="codon codon-shift">AGA</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">CAA</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">AAT</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">TTC</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,271</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TGA</strong> at codon 4 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">AAG</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">GTG</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">GTG</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">ACC</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">AGG</span><span class="codon codon-shift">ATT</span><span class="codon codon-shift">TTG</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">AGG</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">ACC</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TGC</span><span class="codon codon-stop">TAA</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">CCC</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,313</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAA</strong> at codon 4 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">GTG</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">CTG</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CAG</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">CCG</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">GCG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">AAC</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">TGC</span><span class="codon codon-stop">TAA</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">CCC</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">GGG</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">ACT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">CTG</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">CGT</span><span class="codon codon-shift">CTG</span><span class="codon codon-shift">CGG</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,448</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">ACG</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">TGC</span><span class="codon codon-orig">AGC</span><span class="codon codon-orig">CCG</span><span class="codon codon-orig">TCT</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">ACC</span><span class="codon codon-orig">GTG</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">AGG</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">TAG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">TTT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">CGG</span><span class="codon codon-shift">GTT</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">GGT</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">GCA</span><span class="codon codon-shift">GCC</span><span class="codon codon-shift">CGT</span><span class="codon codon-shift">CTT</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">CCG</span><span class="codon codon-shift">TGC</span><span class="codon codon-shift">GGC</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">GGC</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">AGT</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 13,490</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="no-stop">No immediate stop codon — may alter protein function</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">GTG</span><span class="codon codon-orig">CGG</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">AGG</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">TAG</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">CGT</span><span class="codon codon-orig">ATA</span><span class="codon codon-orig">CAG</span><span class="codon codon-orig">GGC</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">CAT</span><span class="codon codon-orig">CTA</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">TAA</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">TGC</span><span class="codon codon-shift">GGC</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">GGC</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">GAT</span><span class="codon codon-shift">GTC</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">AGG</span><span class="codon codon-shift">GCT</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">GAC</span><span class="codon codon-shift">ATC</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">GAT</span><span class="codon codon-shift">AAA</span></div>
+        </div>
+        </div>
+        <div id="seq-s3" class="seq-panel ">
+          <div class="sars1-banner"><strong>West Nile virus lineage 1, complete genome</strong></div>
+          <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-label">Total ORFs</div><div class="metric-val">31</div></div>
+            <div class="metric-card"><div class="metric-label">Frameshift at</div><div class="metric-val" style="font-size:16px;">pos 10,321</div></div>
+            <div class="metric-card"><div class="metric-label">Spike ORFs</div><div class="metric-val">0</div></div>
+            <div class="metric-card"><div class="metric-label">Sequence length</div><div class="metric-val" style="font-size:15px;">11,029 bp</div></div>
+          </div>
+          <div class="two-col">
+            <div>
+              <p class="section-title">ORF table</p>
+              <div class="tbl-scroll">
+                <table class="orf-tbl">
+                  <thead><tr><th>Frame</th><th>Start</th><th>End</th><th>Length (bp)</th><th>Length (aa)</th><th>Known gene</th></tr></thead>
+                  <tbody><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>96</td><td>10,398</td>
+          <td>10,302</td><td>3,434</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>508</td><td>748</td>
+          <td>240</td><td>80</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>2,713</td><td>2,929</td>
+          <td>216</td><td>72</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>3,682</td><td>3,847</td>
+          <td>165</td><td>55</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>8,071</td><td>8,224</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>9,163</td><td>9,421</td>
+          <td>258</td><td>86</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>704</td><td>1,073</td>
+          <td>369</td><td>123</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>1,310</td><td>1,538</td>
+          <td>228</td><td>76</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>4,025</td><td>4,202</td>
+          <td>177</td><td>59</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>7,062</td><td>7,221</td>
+          <td>159</td><td>53</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>9,717</td><td>9,870</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#639922">F0</span></td>
+          <td>10,185</td><td>10,338</td>
+          <td>153</td><td>51</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>940</td><td>1,207</td>
+          <td>267</td><td>89</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>1,660</td><td>1,837</td>
+          <td>177</td><td>59</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>2,017</td><td>2,359</td>
+          <td>342</td><td>114</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>3,019</td><td>3,238</td>
+          <td>219</td><td>73</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>4,954</td><td>5,293</td>
+          <td>339</td><td>113</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#185FA5">F1</span></td>
+          <td>5,554</td><td>5,755</td>
+          <td>201</td><td>67</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>713</td><td>1,064</td>
+          <td>351</td><td>117</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>1,115</td><td>1,523</td>
+          <td>408</td><td>136</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>2,108</td><td>2,420</td>
+          <td>312</td><td>104</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>3,251</td><td>3,746</td>
+          <td>495</td><td>165</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>4,028</td><td>4,409</td>
+          <td>381</td><td>127</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>5,114</td><td>5,522</td>
+          <td>408</td><td>136</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>5,636</td><td>5,972</td>
+          <td>336</td><td>112</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>6,548</td><td>7,151</td>
+          <td>603</td><td>201</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>8,498</td><td>8,735</td>
+          <td>237</td><td>79</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>8,912</td><td>9,107</td>
+          <td>195</td><td>65</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>9,641</td><td>9,824</td>
+          <td>183</td><td>61</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>10,115</td><td>10,343</td>
+          <td>228</td><td>76</td>
+          <td class="gene-col"></td></tr><tr>
+          <td><span class="fdot" style="background:#7F77DD">F2</span></td>
+          <td>10,433</td><td>10,982</td>
+          <td>549</td><td>183</td>
+          <td class="gene-col"></td></tr></tbody>
+                </table>
+              </div>
+              <div style="margin-top:10px;"><span class="fdot" style="background:#639922">Frame 0: 4</span> <span class="fdot" style="background:#185FA5">Frame 1: 11</span> <span class="fdot" style="background:#7F77DD">Frame 2: 16</span></div>
+            </div>
+            <div>
+              <p class="section-title">Gene coverage</p>
+              
+        <div class="cov-row">
+          <span class="cov-label">ORF1a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:87%;background:#639922"></div></div>
+          <span class="cov-pct">87%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">nsp1-10</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:100%;background:#639922"></div></div>
+          <span class="cov-pct">100%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">nsp12-16 (RdRp)</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">Spike (S)</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF3a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">E protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">M protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF6</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF7a</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF7b</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF8</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">N protein</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">ORF10</span>
+          <div class="cov-bg"><div class="cov-bar" style="width:0%;background:#A32D2D"></div></div>
+          <span class="cov-pct">0%</span>
+        </div>
+            </div>
+          </div>
+          <p class="section-title">Frameshift analysis</p>
+          
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 10,321</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TGA</strong> at codon 1 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ATG</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">ATG</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">TTG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-stop">TGA</span><span class="codon codon-shift">GAA</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">GGA</span><span class="codon codon-shift">CTA</span><span class="codon codon-shift">CAT</span><span class="codon codon-shift">GAG</span><span class="codon codon-shift">TTC</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GAG</span><span class="codon codon-shift">ATA</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">AGA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">GGT</span><span class="codon codon-stop">TGA</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+1 frameshift at position 10,360</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TGA</strong> at codon 1 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">ATG</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">CTT</span><span class="codon codon-orig">TGG</span><span class="codon codon-orig">TTG</span><span class="codon codon-orig">AGG</span><span class="codon codon-orig">ACA</span><span class="codon codon-orig">CAG</span><span class="codon codon-orig">TAC</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">TAT</span><span class="codon codon-orig">TTA</span><span class="codon codon-orig">ATC</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">AAA</span><span class="codon codon-orig">TAG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-stop">TGA</span><span class="codon codon-shift">AGA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AAC</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">GGT</span><span class="codon codon-stop">TGA</span><span class="codon codon-shift">GGA</span><span class="codon codon-shift">CAC</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">ACT</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">GAT</span><span class="codon codon-shift">ATT</span><span class="codon codon-stop">TAA</span><span class="codon codon-shift">TCA</span><span class="codon codon-shift">ATT</span><span class="codon codon-shift">GTA</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">AGA</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 10,370</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAG</strong> at codon 16 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">AAC</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">TGA</span><span class="codon codon-orig">GGA</span><span class="codon codon-orig">CAC</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">ACT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">GAT</span><span class="codon codon-orig">ATT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">TCA</span><span class="codon codon-orig">ATT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">AGA</span><span class="codon codon-orig">CAA</span><span class="codon codon-orig">TAT</span><span class="codon codon-orig">AAG</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">CTT</span><span class="codon codon-shift">TGG</span><span class="codon codon-shift">TTG</span><span class="codon codon-shift">AGG</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">CAG</span><span class="codon codon-shift">TAC</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">AGA</span><span class="codon codon-shift">TAT</span><span class="codon codon-shift">TTA</span><span class="codon codon-shift">ATC</span><span class="codon codon-shift">AAT</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">AAA</span><span class="codon codon-stop">TAG</span><span class="codon codon-shift">ACA</span><span class="codon codon-shift">ATA</span><span class="codon codon-stop">TAA</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-title">+2 frameshift at position 10,433</div>
+          <p class="fs-loc">Located within: <strong>ORF1a</strong></p>
+          <p class="stop-warn">Stop codon <strong>TAG</strong> at codon 4 — protein likely truncated (loss-of-function)</p>
+          <p class="codon-label">Original reading:</p>
+          <div class="codon-row"><span class="codon codon-orig">GCA</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">AAG</span><span class="codon codon-orig">TGT</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">ATA</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">TTT</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">GGT</span><span class="codon codon-orig">GTT</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">GTA</span><span class="codon codon-orig">AAT</span><span class="codon codon-orig">AGT</span><span class="codon codon-orig">TAA</span><span class="codon codon-orig">GAA</span><span class="codon codon-orig">AAT</span></div>
+          <p class="codon-label" style="margin-top:8px;">Shifted reading:</p>
+          <div class="codon-row"><span class="codon codon-shift">ATA</span><span class="codon codon-shift">AAA</span><span class="codon codon-shift">GTG</span><span class="codon codon-stop">TAG</span><span class="codon codon-shift">TTT</span><span class="codon codon-shift">TAT</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">AGT</span><span class="codon codon-shift">ATT</span><span class="codon codon-stop">TAG</span><span class="codon codon-shift">TGG</span><span class="codon codon-shift">TGT</span><span class="codon codon-stop">TAG</span><span class="codon codon-shift">TGT</span><span class="codon codon-shift">AAA</span><span class="codon codon-stop">TAG</span><span class="codon codon-shift">TTA</span><span class="codon codon-shift">AGA</span><span class="codon codon-shift">AAA</span></div>
+        </div>
+        </div>
+  </div>
+
+  <div id="tab-compare" class="tab-content">
+    <div class="summary-banner" style="background:#EEEDFE;border-color:#534AB7;color:#3C3489;">
+            NC_045512.2 is the SARS-CoV-2 reference (starred). NC_004718.3 are SARS-CoV-1 strains from the 2003 outbreak. OR575624.1, NC_009942.1 are additional SARS-CoV-2 variants. Differences between columns reflect genuine biological variation.
+    </div>
+    
+    <table class="comp-tbl">
+      <thead><tr><th>Metric</th><th>&#9733; NC_045512.2<br><span class="th-sub">SARS-CoV-2 ref</span></th><th>NC_004718.3<br><span class="th-sub">SARS-CoV-1</span></th><th>OR575624.1<br><span class="th-sub">SARS-CoV-2 variant</span></th><th>NC_009942.1<br><span class="th-sub">West Nile virus lineage 1, complete genome</span></th></tr></thead>
+      <tbody>
+        <tr><td class='metric-col'>Total ORFs found</td><td class="ref-col">47</td><td class="">65</td><td class="">46</td><td class="">31</td></tr>
+        <tr><td class='metric-col'>Sequence length</td><td class="ref-col">29903</td><td class="">29751</td><td class="">29784</td><td class="">11029</td></tr>
+        <tr><td class='metric-col'>Frameshift position</td><td class="ref-col">13,310</td><td class="">13,267</td><td class="">13,298</td><td class="">10,321</td></tr>
+        <tr><td class='metric-col'>Frameshift type</td><td class="ref-col">+1</td><td class="">+1</td><td class="">+1</td><td class="">+1</td></tr>
+        <tr><td class='metric-col'>Spike ORFs</td><td class="ref-col">3</td><td class="">9</td><td class="">3</td><td class="">0</td></tr>
+      </tbody>
+    </table>
+  </div>
+   <div id="tab-plot" class="tab-content">
+    <div class="summary-banner">
+      Sequence-track view of the longest ORF (steelblue) and neighboring frameshift
+      candidates across all 3 reading frames. The dashed vertical line marks the
+      detected frameshift site.
+    </div>
+    <div class="seq-tabs"><button class="seq-tab active" onclick="switchPlot('fp0')">NC_045512.2</button>
+<button class="seq-tab " onclick="switchPlot('fp1')">NC_004718.3</button>
+<button class="seq-tab " onclick="switchPlot('fp2')">OR575624.1</button>
+<button class="seq-tab " onclick="switchPlot('fp3')">NC_009942.1</button>
+</div>
+    <div id="plot-fp0" class="seq-panel active"><div>                            <div id="6bfe1f8d-2cdb-4f4c-b77c-c485c732eb62" class="plotly-graph-div" style="height:450px; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("6bfe1f8d-2cdb-4f4c-b77c-c485c732eb62")) {                    Plotly.newPlot(                        "6bfe1f8d-2cdb-4f4c-b77c-c485c732eb62",                        [{"marker":{"color":"darkorange","line":{"color":"black","width":2},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+1) — overlaps main","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"crimson","line":{"color":"black","width":2},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+2) — overlaps main","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"crimson","line":{"color":"black","width":1},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+2)","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"darkorange","line":{"color":"black","width":1},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+1)","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"steelblue","size":12,"symbol":"square"},"mode":"markers","name":"Longest ORF (frame 1, dom=0.205)","x":[null],"y":[null],"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"shapes":[{"fillcolor":"steelblue","line":{"color":"navy","width":1},"type":"rect","x0":265,"x1":13483,"y0":0.7,"y1":1.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13310,"x1":13466,"y0":1.7,"y1":2.3},{"fillcolor":"crimson","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13305,"x1":13311,"y0":-0.3,"y1":0.3},{"fillcolor":"crimson","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13431,"x1":13458,"y0":-0.3,"y1":0.3},{"fillcolor":"crimson","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13563,"x1":13578,"y0":-0.3,"y1":0.3},{"fillcolor":"crimson","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13608,"x1":13704,"y0":-0.3,"y1":0.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13442,"x1":13448,"y0":1.7,"y1":2.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13550,"x1":13556,"y0":1.7,"y1":2.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13568,"x1":13595,"y0":1.7,"y1":2.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13679,"x1":13727,"y0":1.7,"y1":2.3},{"line":{"color":"black","dash":"dash","width":1.5},"type":"line","x0":13310,"x1":13310,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"font":{"color":"white","family":"monospace","size":11},"showarrow":false,"text":"Longest ORF  |  frame 1  |  13218 nt  |  dom=0.205","x":6874.0,"y":1.0},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13310","x":13310,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"white","family":"monospace","size":9},"showarrow":false,"text":"+1  dom=0.002","x":13388.0,"y":2.0},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13305","x":13305,"xanchor":"left","xref":"x","y":0.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13431","x":13431,"xanchor":"left","xref":"x","y":0.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13563","x":13563,"xanchor":"left","xref":"x","y":0.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13608","x":13608,"xanchor":"left","xref":"x","y":0.35,"yref":"y"},{"font":{"color":"white","family":"monospace","size":9},"showarrow":false,"text":"+2  dom=0.001","x":13656.0,"y":0.0},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13442","x":13442,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13550","x":13550,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13568","x":13568,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13679","x":13679,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"black","size":11},"showarrow":false,"text":"Frameshift site  nt 13310","x":13310,"xanchor":"right","xref":"x","y":1,"yanchor":"top","yref":"y domain"},{"bgcolor":"rgba(255,255,255,0.75)","font":{"color":"navy","family":"monospace","size":10},"showarrow":false,"text":"← ORF start @ nt 265","x":12805,"xanchor":"left","xref":"x","y":1.0,"yref":"y"}],"xaxis":{"title":{"text":"Nucleotide Position"},"range":[12805,13827]},"yaxis":{"tickvals":[0.0,1.0,2.0],"ticktext":["Frame 0","Frame 1","Frame 2"],"range":[-0.6,2.6]},"legend":{"x":1.01,"y":1,"xanchor":"left"},"title":{"text":"Frameshift Sites — NC_045512.2"},"height":450,"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    )                };            </script>        </div></div><div id="plot-fp1" class="seq-panel "><div>                            <div id="1c88bbcd-c6fd-4ae9-ba85-9c2acd0344d7" class="plotly-graph-div" style="height:450px; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("1c88bbcd-c6fd-4ae9-ba85-9c2acd0344d7")) {                    Plotly.newPlot(                        "1c88bbcd-c6fd-4ae9-ba85-9c2acd0344d7",                        [{"marker":{"color":"darkorange","line":{"color":"black","width":2},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+1) — overlaps main","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"crimson","line":{"color":"black","width":1},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+2)","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"darkorange","line":{"color":"black","width":1},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+1)","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"crimson","line":{"color":"black","width":2},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+2) — overlaps main","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"steelblue","size":12,"symbol":"square"},"mode":"markers","name":"Longest ORF (frame 0, dom=0.19)","x":[null],"y":[null],"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"shapes":[{"fillcolor":"steelblue","line":{"color":"navy","width":1},"type":"rect","x0":264,"x1":13413,"y0":-0.3,"y1":0.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13267,"x1":13366,"y0":0.7,"y1":1.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13378,"x1":13396,"y0":0.7,"y1":1.3},{"fillcolor":"crimson","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13598,"x1":21485,"y0":1.7,"y1":2.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13360,"x1":13366,"y0":0.7,"y1":1.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13486,"x1":13513,"y0":0.7,"y1":1.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13597,"x1":13645,"y0":0.7,"y1":1.3},{"fillcolor":"crimson","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13223,"x1":13229,"y0":1.7,"y1":2.3},{"fillcolor":"crimson","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13349,"x1":13376,"y0":1.7,"y1":2.3},{"fillcolor":"crimson","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13481,"x1":13496,"y0":1.7,"y1":2.3},{"line":{"color":"black","dash":"dash","width":1.5},"type":"line","x0":13267,"x1":13267,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"font":{"color":"white","family":"monospace","size":11},"showarrow":false,"text":"Longest ORF  |  frame 0  |  13149 nt  |  dom=0.19","x":6838.5,"y":0.0},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13267","x":13267,"xanchor":"left","xref":"x","y":1.35,"yref":"y"},{"font":{"color":"white","family":"monospace","size":9},"showarrow":false,"text":"+1  dom=0.001","x":13316.5,"y":1.0},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13378","x":13378,"xanchor":"left","xref":"x","y":1.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13598","x":13598,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"white","family":"monospace","size":9},"showarrow":false,"text":"+2  dom=0.114","x":17541.5,"y":2.0},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13360","x":13360,"xanchor":"left","xref":"x","y":1.35,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13486","x":13486,"xanchor":"left","xref":"x","y":1.35,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13597","x":13597,"xanchor":"left","xref":"x","y":1.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13223","x":13223,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13349","x":13349,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13481","x":13481,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"black","size":11},"showarrow":false,"text":"Frameshift site  nt 13267","x":13267,"xanchor":"right","xref":"x","y":1,"yanchor":"top","yref":"y domain"},{"bgcolor":"rgba(255,255,255,0.75)","font":{"color":"navy","family":"monospace","size":10},"showarrow":false,"text":"← ORF start @ nt 264","x":12723,"xanchor":"left","xref":"x","y":0.0,"yref":"y"}],"xaxis":{"title":{"text":"Nucleotide Position"},"range":[12723,21585]},"yaxis":{"tickvals":[0.0,1.0,2.0],"ticktext":["Frame 0","Frame 1","Frame 2"],"range":[-0.6,2.6]},"legend":{"x":1.01,"y":1,"xanchor":"left"},"title":{"text":"Frameshift Sites — NC_004718.3"},"height":450,"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    )                };            </script>        </div></div><div id="plot-fp2" class="seq-panel "><div>                            <div id="64e33e32-0488-40af-acdf-b3d9279c9e60" class="plotly-graph-div" style="height:450px; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("64e33e32-0488-40af-acdf-b3d9279c9e60")) {                    Plotly.newPlot(                        "64e33e32-0488-40af-acdf-b3d9279c9e60",                        [{"marker":{"color":"darkorange","line":{"color":"black","width":2},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+1) — overlaps main","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"crimson","line":{"color":"black","width":2},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+2) — overlaps main","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"crimson","line":{"color":"black","width":1},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+2)","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"darkorange","line":{"color":"black","width":1},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+1)","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"steelblue","size":12,"symbol":"square"},"mode":"markers","name":"Longest ORF (frame 1, dom=0.205)","x":[null],"y":[null],"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"shapes":[{"fillcolor":"steelblue","line":{"color":"navy","width":1},"type":"rect","x0":262,"x1":13471,"y0":0.7,"y1":1.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13298,"x1":13454,"y0":1.7,"y1":2.3},{"fillcolor":"crimson","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13335,"x1":13341,"y0":-0.3,"y1":0.3},{"fillcolor":"crimson","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13443,"x1":13449,"y0":-0.3,"y1":0.3},{"fillcolor":"crimson","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13461,"x1":13488,"y0":-0.3,"y1":0.3},{"fillcolor":"crimson","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13572,"x1":13620,"y0":-0.3,"y1":0.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13271,"x1":13307,"y0":1.7,"y1":2.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13313,"x1":13325,"y0":1.7,"y1":2.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":13448,"x1":13460,"y0":1.7,"y1":2.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":13490,"x1":13589,"y0":1.7,"y1":2.3},{"line":{"color":"black","dash":"dash","width":1.5},"type":"line","x0":13298,"x1":13298,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"font":{"color":"white","family":"monospace","size":11},"showarrow":false,"text":"Longest ORF  |  frame 1  |  13209 nt  |  dom=0.205","x":6866.5,"y":1.0},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13298","x":13298,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"white","family":"monospace","size":9},"showarrow":false,"text":"+1  dom=0.002","x":13376.0,"y":2.0},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13335","x":13335,"xanchor":"left","xref":"x","y":0.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13443","x":13443,"xanchor":"left","xref":"x","y":0.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13461","x":13461,"xanchor":"left","xref":"x","y":0.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 13572","x":13572,"xanchor":"left","xref":"x","y":0.35,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13271","x":13271,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13313","x":13313,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13448","x":13448,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 13490","x":13490,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"white","family":"monospace","size":9},"showarrow":false,"text":"+1  dom=0.002","x":13539.5,"y":2.0},{"font":{"color":"black","size":11},"showarrow":false,"text":"Frameshift site  nt 13298","x":13298,"xanchor":"right","xref":"x","y":1,"yanchor":"top","yref":"y domain"},{"bgcolor":"rgba(255,255,255,0.75)","font":{"color":"navy","family":"monospace","size":10},"showarrow":false,"text":"← ORF start @ nt 262","x":12771,"xanchor":"left","xref":"x","y":1.0,"yref":"y"}],"xaxis":{"title":{"text":"Nucleotide Position"},"range":[12771,13720]},"yaxis":{"tickvals":[0.0,1.0,2.0],"ticktext":["Frame 0","Frame 1","Frame 2"],"range":[-0.6,2.6]},"legend":{"x":1.01,"y":1,"xanchor":"left"},"title":{"text":"Frameshift Sites — OR575624.1"},"height":450,"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    )                };            </script>        </div></div><div id="plot-fp3" class="seq-panel "><div>                            <div id="34456d1f-6ee0-485a-a077-e89a0a796f65" class="plotly-graph-div" style="height:450px; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("34456d1f-6ee0-485a-a077-e89a0a796f65")) {                    Plotly.newPlot(                        "34456d1f-6ee0-485a-a077-e89a0a796f65",                        [{"marker":{"color":"darkorange","line":{"color":"black","width":2},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+1) — overlaps main","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"crimson","line":{"color":"black","width":2},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+2) — overlaps main","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"crimson","line":{"color":"black","width":1},"size":12,"symbol":"square"},"mode":"markers","name":"Neighbor (+2)","x":[null],"y":[null],"type":"scatter"},{"marker":{"color":"steelblue","size":12,"symbol":"square"},"mode":"markers","name":"Longest ORF (frame 0, dom=0.384)","x":[null],"y":[null],"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"shapes":[{"fillcolor":"steelblue","line":{"color":"navy","width":1},"type":"rect","x0":96,"x1":10398,"y0":-0.3,"y1":0.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":10321,"x1":10345,"y0":0.7,"y1":1.3},{"fillcolor":"darkorange","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":10360,"x1":10420,"y0":0.7,"y1":1.3},{"fillcolor":"crimson","line":{"color":"black","dash":"solid","width":2.5},"opacity":0.85,"type":"rect","x0":10370,"x1":10415,"y0":1.7,"y1":2.3},{"fillcolor":"crimson","line":{"color":"black","dash":"dot","width":1},"opacity":0.55,"type":"rect","x0":10433,"x1":10982,"y0":1.7,"y1":2.3},{"line":{"color":"black","dash":"dash","width":1.5},"type":"line","x0":10321,"x1":10321,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"font":{"color":"white","family":"monospace","size":11},"showarrow":false,"text":"Longest ORF  |  frame 0  |  10302 nt  |  dom=0.384","x":5247.0,"y":0.0},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 10321","x":10321,"xanchor":"left","xref":"x","y":1.35,"yref":"y"},{"font":{"color":"darkorange","family":"monospace","size":8},"showarrow":false,"text":"nt 10360","x":10360,"xanchor":"left","xref":"x","y":1.35,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 10370","x":10370,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"crimson","family":"monospace","size":8},"showarrow":false,"text":"nt 10433","x":10433,"xanchor":"left","xref":"x","y":2.3499999999999996,"yref":"y"},{"font":{"color":"white","family":"monospace","size":9},"showarrow":false,"text":"+2  dom=0.02","x":10707.5,"y":2.0},{"font":{"color":"black","size":11},"showarrow":false,"text":"Frameshift site  nt 10321","x":10321,"xanchor":"right","xref":"x","y":1,"yanchor":"top","yref":"y domain"},{"bgcolor":"rgba(255,255,255,0.75)","font":{"color":"navy","family":"monospace","size":10},"showarrow":false,"text":"← ORF start @ nt 96","x":9821,"xanchor":"left","xref":"x","y":0.0,"yref":"y"}],"xaxis":{"title":{"text":"Nucleotide Position"},"range":[9821,11082]},"yaxis":{"tickvals":[0.0,1.0,2.0],"ticktext":["Frame 0","Frame 1","Frame 2"],"range":[-0.6,2.6]},"legend":{"x":1.01,"y":1,"xanchor":"left"},"title":{"text":"Frameshift Sites — NC_009942.1"},"height":450,"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    )                };            </script>        </div></div>
+  </div>
+  
+  <div id="tab-glossary" class="tab-content">
+    <div class="summary-banner" style="background:#EAF3DE;border-color:#3B6D11;color:#27500A;">
+      Plain-language definitions for the key terms used in this report.
+    </div>
+    <div class="glossary-item"><div class="glossary-term">Open reading frame (ORF)</div><div class="glossary-def">A stretch of DNA that starts with a start codon (ATG) and ends with a stop codon. ORFs are candidates for protein-coding genes &mdash; the cell's machinery reads them to build proteins.<sup><a href="#ref-1" style="color:#185FA5;">[1]</a><a href="#ref-2" style="color:#185FA5;">[2]</a><a href="#ref-3" style="color:#185FA5;">[3]</a><a href="#ref-4" style="color:#185FA5;">[4]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Reading frame</div><div class="glossary-def">DNA is read in triplets called codons. Depending on where you start reading, you get a different set of triplets. Frame 0 starts at position 0, Frame 1 at position 1, Frame 2 at position 2. Each gives a completely different protein sequence from the same DNA.<sup><a href="#ref-5" style="color:#185FA5;">[5]</a><a href="#ref-2" style="color:#185FA5;">[2]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Frameshift</div><div class="glossary-def">An insertion or deletion that shifts the reading frame. A +1 frameshift means 1 nucleotide was inserted; +2 means 2 were inserted. Everything downstream is now read in a different frame, usually producing a garbled or truncated protein.<sup><a href="#ref-5" style="color:#185FA5;">[5]</a><a href="#ref-6" style="color:#185FA5;">[6]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Stop codon</div><div class="glossary-def">TAA, TAG, or TGA &mdash; triplets that signal "stop building this protein here." When a frameshift introduces a premature stop codon, the resulting protein is truncated and usually non-functional.<sup><a href="#ref-7" style="color:#185FA5;">[7]</a><a href="#ref-8" style="color:#185FA5;">[8]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Gene coverage</div><div class="glossary-def">What percentage of a known gene's length is covered by detected ORFs. 100% means the tool found an ORF spanning the full known gene. Lower percentages may indicate mutations, deletions, or detection limits.<sup><a href="#ref-3" style="color:#185FA5;">[3]</a><a href="#ref-9" style="color:#185FA5;">[9]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Programmed ribosomal frameshift</div><div class="glossary-def">Some viruses, including coronaviruses, deliberately exploit frameshifting. The ORF1a/ORF1b boundary in SARS genomes contains a slippery sequence where ribosomes intentionally slip, allowing the virus to produce two different proteins from the same genomic region.<sup><a href="#ref-10" style="color:#185FA5;">[10]</a><a href="#ref-11" style="color:#185FA5;">[11]</a><a href="#ref-12" style="color:#185FA5;">[12]</a><a href="#ref-14" style="color:#185FA5;">[14]</a><a href="#ref-15" style="color:#185FA5;">[15]</a></sup></div></div>
+    <div class="glossary-item"><div class="glossary-term">Spike protein</div><div class="glossary-def">The protein on the surface of coronaviruses that binds to human cells. It is the primary target of COVID-19 vaccines. Detecting ORFs in the Spike gene region helps confirm the genome is intact and the sequence is being read correctly.<sup><a href="#ref-16" style="color:#185FA5;">[16]</a><a href="#ref-17" style="color:#185FA5;">[17]</a></sup></div></div>
+    <p class="section-title" style="margin-top:2rem;">References</p>
+    <div style="font-size:12px;color:#555;line-height:2;border-top:1px solid #eee;padding-top:1rem;">
+      <div id="ref-1">[1] National Human Genome Research Institute. Open Reading Frame. <a href="https://www.genome.gov/genetics-glossary/Open-Reading-Frame" target="_blank">genome.gov Talking Glossary</a>.</div>
+      <div id="ref-2">[2] National Human Genome Research Institute. Bioinformatics — Finding Genes. <a href="https://www.genome.gov/25020001/online-education-kit-bioinformatics-finding-genes" target="_blank">genome.gov Education Kit</a>.</div>
+      <div id="ref-3">[3] Wu F et al. (2020). A new coronavirus associated with human respiratory disease in China. <a href="https://doi.org/10.1038/s41586-020-2008-3" target="_blank">Nature 579:265–269</a>.</div>
+      <div id="ref-4">[4] Finkel Y et al. (2021). The coding capacity of SARS-CoV-2. <a href="https://doi.org/10.1038/s41586-020-2739-1" target="_blank">Nature 589:125–130</a>.</div>
+      <div id="ref-5">[5] Crick FHC et al. (1961). General nature of the genetic code for proteins. <a href="https://doi.org/10.1038/192227a0" target="_blank">Nature 192:1227–1232</a>.</div>
+      <div id="ref-6">[6] Farabaugh PJ (1996). Programmed translational frameshifting. <a href="https://doi.org/10.1128/mmbr.60.1.103-134.1996" target="_blank">Microbiol Mol Biol Rev 60(1):103–134</a>.</div>
+      <div id="ref-7">[7] National Human Genome Research Institute. Stop Codon. <a href="https://www.genome.gov/genetics-glossary/Stop-Codon" target="_blank">genome.gov Talking Glossary</a>.</div>
+      <div id="ref-8">[8] Brenner S et al. (1967). UGA: a third nonsense triplet in the genetic code. <a href="https://doi.org/10.1038/2131049a0" target="_blank">Nature 213:449–450</a>.</div>
+      <div id="ref-9">[9] Lee RT et al. (2020). The UCSC SARS-CoV-2 Genome Browser. <a href="https://doi.org/10.1038/s41588-020-0700-8" target="_blank">Nature Genetics 52:986–990</a>.</div>
+      <div id="ref-10">[10] Brierley I, Digard P &amp; Inglis SC (1989). Characterization of an efficient coronavirus ribosomal frameshifting signal. <a href="https://doi.org/10.1016/0092-8674(89)90124-4" target="_blank">Cell 57(4):537–547</a>.</div>
+      <div id="ref-11">[11] Plant EP et al. (2005). A three-stemmed mRNA pseudoknot in the SARS coronavirus frameshift signal. <a href="https://doi.org/10.1371/journal.pbio.0030172" target="_blank">PLOS Biology 3(6):e172</a>.</div>
+      <div id="ref-12">[12] Kelly JA et al. (2020). Structural and functional conservation of the programmed &minus;1 ribosomal frameshift signal of SARS-CoV-2. <a href="https://doi.org/10.1261/rna.076141.120" target="_blank">RNA 26(9):1175–1189</a>.</div>
+      <div id="ref-13">[13] Gorbalenya AE et al. (2020). The species Severe acute respiratory syndrome-related coronavirus: classifying 2019-nCoV and naming it SARS-CoV-2. <a href="https://doi.org/10.1038/s41564-020-0695-z" target="_blank">Nature Microbiology 5:536–544</a>.</div>
+      <div id="ref-14">[14] Bhatt PR et al. (2021). Structural basis of ribosomal frameshifting during translation of the SARS-CoV-2 RNA genome. <a href="https://doi.org/10.1126/science.abf3546" target="_blank">Science 372(6548):1306–1313</a>.</div>
+      <div id="ref-15">[15] Haniff HS et al. (2021). Restriction of SARS-CoV-2 replication by targeting programmed &minus;1 ribosomal frameshifting. <a href="https://doi.org/10.1073/pnas.2023051118" target="_blank">PNAS 118(26):e2023051118</a>.</div>
+      <div id="ref-16">[16] Walls AC et al. (2020). Structure, function, and antigenicity of the SARS-CoV-2 spike glycoprotein. <a href="https://doi.org/10.1016/j.cell.2020.02.058" target="_blank">Cell 181(2):281–292</a>.</div>
+      <div id="ref-17">[17] Wrapp D et al. (2020). Cryo-EM structure of the 2019-nCoV spike in the prefusion conformation. <a href="https://doi.org/10.1126/science.abb2507" target="_blank">Science 367(6483):1260–1263</a>.</div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(id) {
+      document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelector('[onclick="switchTab(\''+id+'\')"]').classList.add('active');
+      document.getElementById('tab-'+id).classList.add('active');
+    }
+    function switchSeq(id) {
+      document.querySelectorAll('.seq-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.seq-panel').forEach(t => t.classList.remove('active'));
+      document.querySelector('[onclick="switchSeq(\''+id+'\')"]').classList.add('active');
+      document.getElementById('seq-'+id).classList.add('active');
+    }
+    function switchPlot(id) {
+      document.querySelectorAll('[id^="plot-"]').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('[onclick^="switchPlot"]').forEach(t => t.classList.remove('active'));
+      document.getElementById('plot-'+id).classList.add('active');
+      document.querySelector('[onclick="switchPlot(\''+id+'\')"]').classList.add('active');
+    }
+  </script>
+</body>
+</html>
