@@ -75,7 +75,7 @@ class ORFS:
                 return name
         return None
 
-    def visualize_orf(self, all_orfs: list[dict], seq_id: str, seq:str, description: str = "") -> None:
+    def visualize_orf(self, all_orfs: list[dict], seq_id: str, seq:str, description: str = "", min_length: int = 150) -> None:
         """
         Purpose: 
             Print a formatted, colorized ORF table and reading frame summary to terminal
@@ -98,7 +98,7 @@ class ORFS:
         sys.stdout.write(f"  Description: {description}\n")
         sys.stdout.write(f"{'='*70}\n\n")
 
-        sys.stdout.write(f"Found {len(all_orfs)} ORFs (≥100bp) across all 3 frames:\n\n")
+        sys.stdout.write(f"Found {len(all_orfs)} ORFs (≥{min_length}bp) across all 3 frames:\n\n")
 
         sys.stdout.write(f"{'Frame':<8}{'Start':<10}{'End':<10}{'Length (bp)':<14}{'Length (aa)':<14}{'Known Gene'}\n")
         sys.stdout.write("-" * 75 + "\n")

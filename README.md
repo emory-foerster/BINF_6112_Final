@@ -43,6 +43,39 @@ Outcome:
 
 
 ## Project Structure:
+```
+ORF Frameshift Analysis & Comparison/
+├── README.md
+├── LICENSE
+├── ENVIRONMENT.md
+├── environment.yml
+├── run_test.sh
+├── pseudocode/
+│   ├── pseudocode.txt
+│   └── flowcharts.txt
+├── datasets/
+│   ├── sequences.fasta
+│   └── reference_sequence.fasta
+├── src/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── fasta_io.py
+│   ├── orf.py
+│   ├── frameshift.py
+│   ├── report.py
+│   ├── visualize.py
+│   ├── WIP_report_2.py
+│   └── html_report2.py
+└── out_results/
+    ├── frame_job_err.txt
+    ├── frame_job_out.txt
+    ├── frameshift_plot.html
+    ├── report.csv
+    ├── report.json
+    ├── results.html
+    └──test_report.html
+```
+
 1. fasta_io.py
    - input: FASTA file
    - output: Dictionary of sequences

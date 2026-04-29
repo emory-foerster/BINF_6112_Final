@@ -137,7 +137,7 @@ def main():
          all_orfs_list.append(all_orfs)
          # Prints colorized ORF table and gene coverage to terminal or to output file
          if args.visualize:
-            orfs_viz_sars.visualize_orf(all_orfs, seq_id, full_seq, record.get("Description", ""))
+            orfs_viz_sars.visualize_orf(all_orfs, seq_id, full_seq, record.get("Description", ""), args.min_length)
             orfs_viz_sars.display_gene_coverage(all_orfs)
          if not all_orfs:
              continue
@@ -198,9 +198,9 @@ def main():
         if args.output_plot:
             report_engine.produce_report("frameshift_plot")
         if args.output_csv:
-            report_engine.produce_report("csv")
+            report_engine.write_csv(args.output_csv)
         if args.output_json:
-            report_engine.produce_report("json")
+            report_engine.write_json(args.output_json)
         if args.output_html:
             html_out = os.path.join(args.output_dir, args.output_html)
             generate_html_report(html_records, output_path=html_out,frameshift_plots=frameshift_plots)
