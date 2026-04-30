@@ -1,4 +1,4 @@
-name: rna-simulator
+name: BINF-6112-Final
 channels:
   - conda-forge
   - bioconda
