@@ -34,4 +34,64 @@ def create_parser():
 
 def main():
 	
+------------
+fasta_io.py
+------------
+read_fasta:
+Open the file and read it one line at a time. Every time you see a line that starts with ">" a new sequence is beginning — grab its name and description from that line. Keep collecting all the sequence lines that follow until you hit the next ">" or reach the end of the file. Once you have the full sequence, save the name, description, and sequence together as one record. Make sure all the letters are uppercase. Do this for every sequence in the file and return the whole collection at the end.
+-----------
+orf.py
+-----------
+parse_codons:
+Take a DNA sequence and chop it into groups of 3 letters called codons. You can start chopping from the 1st, 2nd, or 3rd letter depending on the reading frame. Save each codon and where it started in the sequence. Return the whole list of codons and their positions.
 
+detect_ORF:
+Scan through a list of codons looking for genes. When you see the start signal ATG start writing down the letters. Keep writing until you hit a stop signal (TAA, TAG, or TGA). Everything from the start signal to the stop signal is one gene — save the letters, where it started, where it ended, and how long it is. Keep scanning and collect every gene you find. Return them all.
+
+detect_all_frames:
+Run the gene finder across all three possible ways of reading the sequence, and also do the same thing on the backwards flipped version of the sequence since genes can hide on either side. If a minimum length was given, throw out any genes that are too short. Combine everything found across all six readings into one big list and return it.
+
+reverse_complement:
+Take a DNA sequence and flip it backwards. Then swap every letter with its opposite — A becomes T, T becomes A, G becomes C, C becomes G. Return the result as a new sequence.
+
+---------------
+visualization.py
+----------------
+get_gene_name:
+Given where a gene starts and ends, check if it overlaps enough with any of the known SARS-CoV-2 genes. If more than half of the gene overlaps with a known gene, return that gene's name. Otherwise return nothing.
+
+visualize_orf:
+Print a nice table to the screen showing every gene that was found. For each gene show what reading frame it came from, where it starts and ends, how long it is, and if it matches a known gene name. Color code each row based on which reading it came from. At the bottom print a summary of how many genes were found in each reading.
+
+display_frameshift:
+For each place where a frameshift was detected, print a message to the screen explaining where it happened, what gene it affects, and whether the shift causes the protein to stop too early. Then show the original gene letters in green and the shifted version in yellow and red so you can see how the reading changed.
+
+display_gene_coverage:
+For every known SARS-CoV-2 gene, calculate what percentage of it was covered by the genes we found. Draw a little bar made of blocks showing how much was covered. Color it green if most of it was covered, yellow if about half was covered, and red if very little was covered.
+
+display_cross_sequence_comparison:
+Print a side by side table comparing all the sequences that were analyzed. Show how many genes were found in each, where any frameshifts happened, and how many genes overlapped with the Spike protein region.
+
+--------------
+html_report.py
+--------------
+gene_coverage_data:
+For each known gene, figure out how much of it was covered by the genes we found. Calculate that as a percentage and save the gene name and percentage together. Return the whole list.
+
+classify_sequence:
+Look at the sequence's name and description and figure out what type of coronavirus it is. If it matches the main reference, call it "SARS-CoV-2 reference". If it mentions words like covid, omicron, or delta call it a "SARS-CoV-2 variant". If it mentions SARS-CoV-1 related words call it "SARS-CoV-1". If it mentions MERS call it "MERS-CoV". Otherwise just use whatever name was given.
+
+badge_class:
+Look at the strain label and decide what color badge to give it in the report. SARS-CoV-1 and MERS get one color, everything else gets another.
+
+get_strain_label:
+Get a short friendly name for the sequence to use as a column header in the comparison table. "SARS-CoV-2 reference" gets shortened to "SARS-CoV-2 ref", everything else keeps its full label.
+
+build_coverage_html:
+For each known gene, draw a colored progress bar showing how much of it was covered. Green means most of it was covered, yellow means about half, red means very little. Put all the bars together and return them as a webpage snippet.
+
+build_orf_rows:
+Build a table showing every gene that was found. Each row shows the reading frame, where it starts and ends, how long it is, and what known gene it matches if any. Also build little colored badges summarizing how many genes were found in each reading frame. Return both the table rows and the badges.
+
+generate_html_report:
+This is the big one that puts everything together into a final webpage. It builds five tabs — an Overview showing summary numbers, a Per-Sequence tab showing detailed results for each sequence, a Comparison tab showing all sequences side by side, a Frameshift Plot tab showing visual diagrams, and a Glossary tab explaining all the biology terms. Then it saves the whole webpage as an HTML file on your computer.
