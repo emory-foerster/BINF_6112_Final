@@ -25,9 +25,9 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INPUT_FILE="$REPO_ROOT/datasets/sequences.fasta"
 REF_FILE="$REPO_ROOT/datasets/sequence_ref.fasta"
 OUTPUT_DIR="$REPO_ROOT/out_results"
-CSV_OUT="test_summary.csv"
-JSON_OUT="test_data.json"
-HTML_OUT="report.html"
+CSV_OUT="report.csv"
+JSON_OUT="report.json"
+HTML_OUT="full_report.html"
 
 mkdir -p "$OUTPUT_DIR"
 
