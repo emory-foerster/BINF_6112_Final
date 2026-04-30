@@ -59,7 +59,7 @@ python3 main.py -f <fasta_file> [-v] [-m <min_orf_length>]
 
 | Flag | Required | Default | Description |
 |------|----------|---------|-------------|
-| `-f`, `--fasta_file` | Yes | — | Path to the input FASTA file. |
+| `-f`, `--fasta_file` | Yes | `../datasets/sequences.fasta` | Path to the input FASTA file. |
 | `-r`, `--reference_fasta` | No | `../datasets/sequence_ref.fasta` | Path to the reference FASTA file for annotation. |
 | `-m`, `--min_length` | No | `150` | Minimum ORF length in nucleotides. |
 | `-oc`, `--output_csv` | No | — | File name for the output CSV file. |
