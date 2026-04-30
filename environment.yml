@@ -1,0 +1,12 @@
+name: rna-simulator
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - plotly
+  - colorama
+prefix: /home/mlucas37/miniconda3/envs/rna-simulator
