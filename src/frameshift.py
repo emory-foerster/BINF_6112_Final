@@ -275,6 +275,7 @@ class FrameshiftDetector:
 
 
 if __name__ == '__main__':
+    #for testing
     fasta_dict = fasta_io.read_fasta(file)
     seq        = fasta_dict[0]['Sequence']
     all_orfs   = orf.detect_all_frames(seq)

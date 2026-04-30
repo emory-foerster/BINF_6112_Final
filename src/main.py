@@ -96,9 +96,9 @@ def main():
          sys.stderr.write("Error Minimum length must be a positive integer.\n")
          sys.exit(1)
 
-    # default to CSV if no output format provided
+    # default to html if no output format provided
     if not any([args.output_csv, args.output_json, args.output_html]):
-        args.output_html = "results.html"
+        args.output_html = "full_report.html"
         sys.stdout.write("No output format specified. Defaulting to html.\n")
 
     # Loads reference sequence and records for analysis
@@ -195,7 +195,7 @@ def main():
         # Pass the list of results to the engine
         report_engine = OrfReport(final_results, args.output_dir, all_orfs=all_orfs_list[-1] if all_orfs_list else None, all_orfs_per_seq=all_orfs_raw_list or None,)
         frameshift_plot_html = report_engine.write_frameshift_plot()
-        frameshift_plots     = report_engine.build_frameshift_plots_html()
+        frameshift_plots     = report_engine.build_frameshift_plots_html() #loops above variable
         if args.output_plot:
             report_engine.produce_report("frameshift_plot")
         if args.output_csv:
