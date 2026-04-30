@@ -96,9 +96,9 @@ def main():
          sys.stderr.write("Error Minimum length must be a positive integer.\n")
          sys.exit(1)
 
-    # default to CSV if no output format provided
+    # default to html if no output format provided
     if not any([args.output_csv, args.output_json, args.output_html]):
-        args.output_html = "results.html"
+        args.output_html = "full_report.html"
         sys.stdout.write("No output format specified. Defaulting to html.\n")
 
     # Loads reference sequence and records for analysis
