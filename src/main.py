@@ -140,7 +140,8 @@ def main():
             orfs_viz_sars.visualize_orf(all_orfs, seq_id, full_seq, record.get("Description", ""), args.min_length)
             orfs_viz_sars.display_gene_coverage(all_orfs)
          if not all_orfs:
-             continue
+            sys.stdout.write(f"Warning: No ORFs found for {seq_id}, skipping.\n")
+            continue
          # Use unfiltered ORFs for frameshift neighbor detection so short neighboring
          # ORFs at frameshift boundaries (e.g. ORF1a/1b ~173 nt) are not missed when
          # min_length is set high.
