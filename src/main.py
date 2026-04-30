@@ -10,7 +10,7 @@ from orf import detect_all_frames
 from frameshift import FrameshiftDetector
 from report import OrfReport
 from visualize import ORFS, sars_cov2_genes, display_cross_sequence_comparison
-from html_report2 import generate_html_report
+from html_report import generate_html_report
 # Emory Foerster
 # Runo Siakpebru
 

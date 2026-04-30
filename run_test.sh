@@ -27,7 +27,7 @@ REF_FILE="$REPO_ROOT/datasets/sequence_ref.fasta"
 OUTPUT_DIR="$REPO_ROOT/out_results"
 CSV_OUT="test_summary.csv"
 JSON_OUT="test_data.json"
-HTML_OUT="test_report.html"
+HTML_OUT="report.html"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -38,7 +38,7 @@ echo "Running main.py ..."
 python "$REPO_ROOT/src/main.py" \
   -f "$INPUT_FILE" \
   -r "$REF_FILE" \
-  -m 200 \
+  -m 150 \
   -d "$OUTPUT_DIR" \
   -oc "$CSV_OUT" \
   -oj "$JSON_OUT" \
