@@ -1,0 +1,37 @@
+PSEUDOCODE: Frameshift and ORF Finder Tool
+
+
+
+MAIN PACKAGE
+-------------
+
+def create_parser():
+	
+	Build a list of all user arguments passed through the CLI with the following options.
+
+          -r   Path to a single reference genome FASTA file
+           (defaults to ../datasets/sequence_ref.fasta if not provided)
+
+          -f   Path to the input FASTA file containing sequences to analyze
+               (required — the program cannot run without this)
+
+          -m   Minimum ORF length in base pairs to keep
+               (defaults to 150 if not provided)
+
+          -oc  Name of the CSV output file, if the user wants one
+
+          -oj  Name of the JSON output file, if the user wants one
+
+          -oh  Name of the full interactive HTML report file, if the user wants one
+
+          -op  Name of the standalone frameshift track plot HTML file, if the user wants one
+
+          -d   Directory where all output files will be saved
+               (defaults to ../examples if not provided)
+
+          -v   A switch — if passed, print colorized ORF tables and gene coverage
+               to the terminal while running
+
+def main():
+	
+

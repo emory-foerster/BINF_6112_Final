@@ -194,7 +194,7 @@ def main():
         # Pass the list of results to the engine
         report_engine = OrfReport(final_results, args.output_dir, all_orfs=all_orfs_list[-1] if all_orfs_list else None, all_orfs_per_seq=all_orfs_raw_list or None,)
         frameshift_plot_html = report_engine.write_frameshift_plot()
-        frameshift_plots     = report_engine.build_frameshift_plots_html()
+        frameshift_plots     = report_engine.build_frameshift_plots_html() #loops above variable
         if args.output_plot:
             report_engine.produce_report("frameshift_plot")
         if args.output_csv:

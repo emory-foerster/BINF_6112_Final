@@ -9,4 +9,4 @@ dependencies:
   - pandas
   - plotly
   - colorama
-prefix: /home/mlucas37/miniconda3/envs/rna-simulator
+prefix: /home/mlucas37/miniconda3/envs/BINF-6112
