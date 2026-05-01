@@ -155,10 +155,17 @@ Using the user requested file name, check if there is a valid frameshift site in
 build_frameshift_plot_html:
 This takes the functionality of write_frameshift_plot but makes 
 
+webapp/ (Flask dashboard viewer)
 
-
-
-
-
-
-
+----------
+app.py
+----------
+Run a small local Flask server that turns the project into a simple web app instead of manually opening HTML files. The server serves the homepage, the generated HTML report pages, and a file browser for anything in the output folder. Routes include / for the home page, /report for the main report HTML, /frameshift-plot for the plot page, /files for listing outputs. The goal is to make results easier to navigate.
+-------------
+index.html
+-------------
+Render a home page for the tool that explains what it does, provides links to the report, frameshift plot, and output files. The page uses the same styling and layout patterns as the generated report so navigation feels consistent.
+---------------
+css/style.css
+---------------
+Provide shared styling for the home page and the Flask served pages so everything looks consistent with the generated report.
