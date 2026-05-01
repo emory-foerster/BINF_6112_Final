@@ -131,7 +131,7 @@ BINF_6112_Final/
 │   ├── pseudocode.txt
 │   └── flowcharts.txt
 ├── datasets/
-│   ├── seq1.fasta
+│   ├── sequences.fasta
 │   └── reference_sequence.fasta
 ├── src/
 │   ├── __init__.py
@@ -141,7 +141,7 @@ BINF_6112_Final/
 │   ├── frameshift.py
 │   ├── report.py
 │   ├── visualize.py
-│   └── html_report2.py
+│   └── html_report.py
 └── out_results/
     ├── report.csv
     ├── report.json
