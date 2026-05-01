@@ -1,12 +1,12 @@
-name: rna-simulator
+name: binf_final
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
   - python=3.11
+  - biopython
   - numpy
   - pandas
+  - matplotlib
   - plotly
-  - colorama
-prefix: /home/mlucas37/miniconda3/envs/rna-simulator
+  - pytest

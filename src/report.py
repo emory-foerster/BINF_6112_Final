@@ -19,10 +19,9 @@ class OrfReport:
 
     Input:
         results   (List[Dict[str, Any]]): list of per-sequence result dictionaries.
-        output_dir (str):                 directory where report files will be saved.
-        all_orfs  (List[Dict] | None):    full ORF list from orf.detect_all_frames —
-                                          required for neighbor dominance in the
-                                          frameshift plot; safe to omit for other formats.
+        output_dir (str): directory where report files will be saved.
+        all_orfs  (List[Dict] | None):full ORF list from orf.detect_all_frames required for neighbor dominance in the
+        frameshift plot; safe to omit for other formats.
 
     Output:
         Report files produced in output_dir.
