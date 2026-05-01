@@ -31,9 +31,16 @@ def create_parser():
 
           -v   A switch — if passed, print colorized ORF tables and gene coverage
                to the terminal while running
-
+------------
 def main():
-	
+
+	1. Read all user input commands from command line
+	2. Ensure input requirements are met fail if not
+	3. Force a default output if none specified
+	4. Store reference and sequences files onto memory. Send error if more reference sequences than expected.
+	5. For each sequence find all orfs, and the possible frameshifts among the orfs
+	6. Use report engine to write all user specified output formats
+
 ------------
 fasta_io.py
 ------------
@@ -95,3 +102,15 @@ Build a table showing every gene that was found. Each row shows the reading fram
 
 generate_html_report:
 This is the big one that puts everything together into a final webpage. It builds five tabs — an Overview showing summary numbers, a Per-Sequence tab showing detailed results for each sequence, a Comparison tab showing all sequences side by side, a Frameshift Plot tab showing visual diagrams, and a Glossary tab explaining all the biology terms. Then it saves the whole webpage as an HTML file on your computer.
+
+--------------
+frameshift.py
+--------------
+
+
+FrameshiftDetector:
+
+
+ima finish this tomorrow promise genomics being annoying
+
+
