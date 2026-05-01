@@ -9,4 +9,6 @@ dependencies:
   - pandas
   - plotly
   - colorama
+  - flask
+  - pytest
 prefix: /home/mlucas37/miniconda3/envs/BINF-6112
