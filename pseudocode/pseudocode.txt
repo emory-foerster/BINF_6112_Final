@@ -1,9 +1,9 @@
 PSEUDOCODE: Frameshift and ORF Finder Tool
 
 
-
-MAIN PACKAGE
--------------
+----------
+main.py
+----------
 
 def create_parser():
 	
@@ -31,7 +31,7 @@ def create_parser():
 
           -v   A switch — if passed, print colorized ORF tables and gene coverage
                to the terminal while running
-------------
+
 def main():
 
 	1. Read all user input commands from command line
@@ -107,12 +107,11 @@ This is the big one that puts everything together into a final webpage. It build
 frameshift.py
 --------------
 
-
 FrameshiftDetector:
-Goal is a tool that take a list orf's found within a sequence. And searches for possible frameshift sites within user specified criteria.
+Goal is a tool that take a list ORF's found within a sequence. And searches for possible frameshift sites within user specified criteria.
 
 longest_orf:
-Look through the list of ORFs from other program and save the orf of the longest length to memory. 
+Look through the list of ORFs from other program and save the ORF of the longest length to memory. 
 
 orf_coverage_proportion:
 Find the total length of all ORF's in provided list. Find the percent coverage of each ORF across the total length. Also known as dominance. Return the coverage proportion as a decimal. 
@@ -150,10 +149,13 @@ write_html:
 Using the user requested file name create a simple plot using plotly to show dominance of longest ORF across the whole sequence.
 
 write_frameshift_plot:
-Using the user requested file name, check if there is a valid frameshift site in the inputted results. If frameshift found begin plot using plotly, with longest ORF as a bar with dominance, frame, and its length included. At each possible frameshift site (neighboring orfs) draw a bar on its specified frame to show where the neighboring ORF pick up in relation to the longest ORF with the starting position. Save this to the output directory as a html.
+Using the user requested file name, check if there is a valid frameshift site in the inputted results. If frameshift found begin plot using plotly, with longest ORF as a bar with dominance, frame, and its length included. At each possible frameshift site (neighboring orfs) draw a bar on its specified frame to show where the neighboring ORF pick up in relation to the longest ORF with the starting position. Save this to the output directory as a HTML.
 
 build_frameshift_plot_html:
-This takes the functionality of write_frameshift_plot but makes 
+This takes the functionality of write_frameshift_plot but saves each frameshift as an HTML fragment. Each indexed with its sequence ID. HTML fragments will be used in the full HTML report. 
+
+produce_report:
+Takes a format name ("json", "csv", "html", or "frameshift_plot") and calls the matching write method. Returns an error is the file format is invalid. 
 
 
 
