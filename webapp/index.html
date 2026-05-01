@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ORF and Frameshift Analysis Toolkit - Home</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <header>
+    <h1>ORF and Frameshift Analysis Toolkit</h1>
+    <p>A bioinformatics tool for scanning genomes, finding ORFs, and flagging possible frameshifts.</p>
+
+    <div class="badges">
+      <span class="badge badge-ref">FASTA input</span>
+      <span class="badge badge-sars1">ORF detection</span>
+      <span class="badge badge-ref">Frameshift candidates</span>
+      <span class="badge badge-ref">HTML, CSV outputs</span>
+    </div>
+  </header>
+
+  <nav class="main-tabs">
+    <a class="main-tab active" href="/">Home</a>
+    <a class="main-tab" href="/report">Report</a>
+    <a class="main-tab" href="/frameshift-plot">Frameshift Plot</a>
+    <a class="main-tab" href="/files">Files</a>
+  </nav>
+
+  <main class="tab-content active">
+    <p class="summary-banner">
+      Upload or provide a FASTA file, then this tool identifies open reading frames (ORFs) across frames 0, 1, 2,
+      picks the dominant ORF, and checks for nearby ORFs that may suggest a frameshift.
+    </p>
+
+    <p class="section-title">At a glance</p>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">What it takes in</div>
+        <div class="metric-val metric-text">Nucleotide FASTA file</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">What it produces</div>
+        <div class="metric-val metric-text">HTML report + CSV summary + JSON Output</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Best for</div>
+        <div class="metric-val metric-text">Viral genomes and variants</div>
+      </div>
+    </div>
+
+    <p class="section-title">Quick start</p>
+    <div class="finding-card finding-info">
+      <div class="finding-title">Run the analysis</div>
+      <p class="finding-body">
+        Example command. Update paths to match your repo:
+      </p>
+      <pre class="code-block">python src/main.py -f datasets/input.fasta -oc out_results/results.csv -oh out_results/full_report.html</pre>
+      <p class="finding-body">
+        After it runs, open the report page or the generated HTML report.
+      </p>
+    </div>
+
+    <p class="section-title">Explore results</p>
+    <div class="two-col">
+      <div class="finding-card finding-warn">
+        <div class="finding-title">Report dashboard</div>
+        <p class="finding-body">
+          View a clean summary of sequences, ORF counts, dominance, and frameshift flags.
+        </p>
+        <p class="link-row"><a class="link-btn" href="/report">Open report</a></p>
+      </div>
+
+      <div class="finding-card finding-info">
+        <div class="finding-title">Frameshift plot</div>
+        <p class="finding-body">
+          See candidate frameshift sites along the genome with neighboring ORFs across frames.
+        </p>
+        <p class="link-row"><a class="link-btn" href="/frameshift-plot">Open frameshift plot</a></p>
+      </div>
+    </div>
+
+    <p class="section-title">What the tool is checking</p>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">ORF search</div>
+        <div class="metric-val metric-text">
+          Scan for start and stop codons and record ORFs across reading frames.
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Dominance</div>
+        <div class="metric-val metric-text">
+          Compare the longest ORF length to the total ORF signal in the sequence.
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Frameshift candidates</div>
+        <div class="metric-val metric-text">
+          Look for strong neighboring ORFs in shifted frames near key positions.
+        </div>
+      </div>
+    </div>
+
+    <h3 class="section-title">Meet the engineers</h3>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="avatar">EF</div>
+        <div class="team-name">Emory Foerster </div>
+        <div class="team-role">M.S. Bioinformatics, UNCC</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">ML</div>
+        <div class="team-name">Mekhi Lucas</div>
+        <div class="team-role">M.S. Bioinformatics, UNCC</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">AG</div>
+        <div class="team-name">Akshitha Ganta</div>
+        <div class="team-role">M.S. Bioinformatics, UNCC</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">RS</div>
+        <div class="team-name">Runo Siakpebru</div>
+        <div class="team-role">M.S. Bioinformatics, UNCC</div>
+      </div>
+    </div>
+
+    <p class="section-title">Contact</p>
+    <div class="finding-card">
+      <div class="finding-title">Questions or feedback</div>
+      <p class="finding-body">
+        If you are reviewing this project and want to report an issue, send a note to the team.
+      </p>
+      <a class="github-link" href="https://github.com/emory-foerster/BINF_6112_Final" target="_blank" rel="noopener"> <img src="css/icons/github.svg" alt="GitHub" class="github-icon"><span class="github-text">GitHub</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+
+  <div>ORF and Frameshift Analysis Toolkit</div>
+  <div class="muted">
+    This site is sponsored by Phoebe Bridgers.
+    <div style="margin-top:8px;">
+      <a class="icon-link" href="https://en.wikipedia.org/wiki/Phoebe_Bridgers" target="_blank" rel="noopener">
+        <img src="css/icons/bridgers.svg" alt="Phoebe Bridgers" class="icon-small">
+        <span class="icon-text">Wikipedia</span>
+      </a>
+    </div>
+  </div>
+</footer>
+  </main>
+</body>
+</html>

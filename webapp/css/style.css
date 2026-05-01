@@ -1,0 +1,169 @@
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#222;font-size:14px;}
+
+header{background:#1a1a2e;color:white;padding:1.5rem 2rem;}
+header h1{font-size:1.4rem;font-weight:500;}
+header p{opacity:.75;font-size:.9rem;margin-top:6px;max-width:980px;line-height:1.5;}
+
+.badges{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+.badge-ref{background:#B5D4F4;color:#0C447C;}
+.badge-sars1{background:#CECBF6;color:#3C3489;}
+
+.main-tabs{display:flex;gap:0;border-bottom:1px solid #ddd;background:white;padding:0 1.5rem;}
+.main-tab{
+  padding:10px 18px;
+  font-size:13px;
+  border-bottom:2px solid transparent;
+  color:#666;
+  text-decoration:none;
+  display:inline-block;
+}
+.main-tab.active{color:#1a1a2e;border-bottom:2px solid #1a1a2e;font-weight:500;}
+.main-tab:hover{color:#1a1a2e;}
+
+.tab-content{padding:1.5rem;max-width:1300px;margin:0 auto;}
+.summary-banner{
+  background:#E6F1FB;
+  border-left:3px solid #185FA5;
+  border-radius:0 8px 8px 0;
+  padding:12px 16px;
+  margin-bottom:1.25rem;
+  font-size:13px;
+  line-height:1.6;
+  color:#0C447C;
+}
+
+.section-title{
+  font-size:11px;
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:#888;
+  margin:1.25rem 0 .6rem;
+}
+
+.metrics-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  margin-bottom:1.25rem;
+}
+.metric-card{background:#f8f8f8;border-radius:8px;padding:12px 14px;}
+.metric-label{font-size:11px;color:#888;margin-bottom:4px;}
+.metric-val{font-size:22px;font-weight:500;color:#1a1a2e;}
+.metric-text{font-size:13px;font-weight:500;line-height:1.4;}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:1rem;}
+.finding-card{border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:1rem;font-size:13px;line-height:1.6;background:white;}
+.finding-warn{background:#fff8f8;border-left:3px solid #A32D2D;}
+.finding-info{background:#E6F1FB;border-left:3px solid #185FA5;}
+.finding-title{font-weight:600;margin-bottom:5px;color:#1a1a2e;}
+.finding-body{color:#444;}
+
+.code-block{
+  display:block;
+  background:#0f1220;
+  color:#d6d9ff;
+  border-radius:8px;
+  padding:12px 14px;
+  margin:10px 0;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size:12px;
+  overflow-x:auto;
+}
+
+.link-row{margin-top:10px;}
+.link-btn{
+  display:inline-block;
+  background:#1a1a2e;
+  color:white;
+  padding:8px 12px;
+  border-radius:8px;
+  text-decoration:none;
+  font-size:12px;
+  font-weight:600;
+}
+.link-btn:hover{opacity:.9;}
+
+.team-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+  margin-bottom:1.25rem;
+}
+.team-card{
+  background:#ffffff;
+  border:1px solid #eee;
+  border-radius:12px;
+  padding:14px;
+}
+.avatar{
+  width:38px;height:38px;border-radius:10px;
+  background:#1a1a2e;color:white;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12px;
+  margin-bottom:10px;
+}
+.team-name{font-weight:650;color:#1a1a2e;margin-bottom:4px;}
+.team-role{font-size:12px;color:#666;}
+
+.site-footer{
+  margin-top:2rem;
+  padding:18px 0 10px 0;
+  border-top:1px solid #e6e6e6;
+  color:#666;
+  font-size:12px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.muted{opacity:.8;}
+
+@media(max-width:700px){
+  .two-col{grid-template-columns:1fr;}
+}
+.github-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:inherit;
+  font-weight:600;
+}
+
+.github-icon{
+  width:18px;
+  height:18px;
+}
+
+.github-link:hover{
+  opacity:0.85;
+}
+
+.github-text{
+  font-size:12px;
+  color:#ddd; /* if in dark header */
+}
+.icon-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:inherit;
+  font-weight:600;
+}
+
+.icon-small{
+  width:90px;
+  height:120px;
+}
+
+.icon-link:hover{
+  opacity:0.85;
+}
+
+.icon-text{
+  font-size:12px;
+}
