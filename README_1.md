@@ -34,7 +34,10 @@ Frameshifts are mutations that alter the reading frame of a gene, often producin
 - Python 3.10 or later
 - pandas
 - plotly
-- colorema
+- colorama
+- numpy
+- flask
+- pytest
 
 The recommended way to set up the environment is with conda. To set up the environment and run the program enter the command below.
 
@@ -44,7 +47,7 @@ conda create -f environment.yml
 Alternatively, you can install the core dependencies manually with:
 
 ```bash
-pip install pandas plotly colorema 
+pip install pandas plotly colorama flask pytest
 ```
 
 ## Usage
