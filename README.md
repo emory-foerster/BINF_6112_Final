@@ -74,6 +74,22 @@ ORF Frameshift Analysis & Comparison/
     ├── report.json
     ├── results.html
     └──test_report.html
+└── webapp/
+│   ├── css/
+│        ├── icons/
+│        └── style.css
+│   ├── app.py
+│   ├── index.html
+└── out_results/
+    ├── frame_job_err.txt
+    ├── frame_job_out.txt
+    ├── frameshift_plot.html
+    ├── report.csv
+    ├── report.json
+    ├── results.html
+    └──test_report.html
+└── tests/
+│   ├── test_pipeline.py
 ```
 
 1. fasta_io.py

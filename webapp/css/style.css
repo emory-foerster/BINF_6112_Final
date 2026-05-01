@@ -124,3 +124,46 @@ header p{opacity:.75;font-size:.9rem;margin-top:6px;max-width:980px;line-height:
 @media(max-width:700px){
   .two-col{grid-template-columns:1fr;}
 }
+.github-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:inherit;
+  font-weight:600;
+}
+
+.github-icon{
+  width:18px;
+  height:18px;
+}
+
+.github-link:hover{
+  opacity:0.85;
+}
+
+.github-text{
+  font-size:12px;
+  color:#ddd; /* if in dark header */
+}
+.icon-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:inherit;
+  font-weight:600;
+}
+
+.icon-small{
+  width:90px;
+  height:120px;
+}
+
+.icon-link:hover{
+  opacity:0.85;
+}
+
+.icon-text{
+  font-size:12px;
+}
