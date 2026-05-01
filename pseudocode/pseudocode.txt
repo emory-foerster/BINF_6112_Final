@@ -118,7 +118,17 @@ orf_coverage_proportion:
 Find the total length of all ORF's in provided list. Find the percent coverage of each ORF across the total length. Also known as dominance. Return the coverage proportion as a decimal. 
 
 find_neighboring_orfs:
-Searching 
+Searching a space at the end of the longest ORF roughly 200 bases in both directions from the end. Find and save any other ORF's that start on different frames of the window. These ORF's on different frames are frameshift potentials as they suggest a ribosomal slippage. 
+
+shift_type:
+Looking at the results from find_neighboring ORF's (potential frameshift sites). Figure out how many frames away the potential site is from the longest ORF's frame. Saving the type of shift +1 or +2 depending on the potential frameshifts frame to a dictionary.
+
+build_frameshift_details:
+Take each potential frameshift site and store all relevant information into a dictionary, records include where the possible slip happened, which frame it is in,
+how many frames it shifted, and the full gene information. Return the whole collection of those records.
+
+annotate_all_dominance:
+For every gene in the 
 
 
 
