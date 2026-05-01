@@ -131,6 +131,32 @@ annotate_all_dominance:
 For every ORF found from the program assign it a dominance proportion for how much of it covers the whole sequence.
 
 analyze:
+Builds the full frameshift analysis for the longest ORF by first validating input, then computing the ORF's dominance relative to total coverage. Finds neighboring ORFs that may indicate a frameshift and, if found, assembles detailed frameshift records otherwise, it nothing is stored. The dominance ratio, frameshift flag, frameshift details are added to the long_orf dictionary. 
+
+----------
+report.py
+----------
+
+ORFReport:
+Using the frameshift and orf details passed to the program perform some error handling on input variables meet required specifications. If variables pass error handling begin the creation of the html report format and the user requested output formats. 
+
+write_json:
+Using the user requested file name save the results list into a dataframe using pandas. With this dataframe save it to a json file with the filename using pandas. 
+
+write_csv:
+Using the user requested file name save the results list into a dataframe using pandas. With this dataframe save it to a csv file with the filename using pandas.
+
+write_html:
+Using the user requested file name create a simple plot using plotly to show dominance of longest ORF across the whole sequence.
+
+write_frameshift_plot:
+Using the user requested file name, check if there is a valid frameshift site in the inputted results. If frameshift found begin plot using plotly, with longest ORF as a bar with dominance, frame, and its length included. At each possible frameshift site (neighboring orfs) draw a bar on its specified frame to show where the neighboring ORF pick up in relation to the longest ORF with the starting position. Save this to the output directory as a html.
+
+build_frameshift_plot_html:
+This takes the functionality of write_frameshift_plot but makes 
+
+
+
 
 
 
