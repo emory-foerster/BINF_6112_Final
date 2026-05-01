@@ -42,7 +42,7 @@ Frameshifts are mutations that alter the reading frame of a gene, often producin
 The recommended way to set up the environment is with conda. To set up the environment and run the program enter the command below.
 
 ```bash
-conda create -f environment.yml
+conda env create -f environment.yml
 ```
 Alternatively, you can install the core dependencies manually with:
 
