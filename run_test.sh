@@ -19,8 +19,13 @@
 #   -oj  JSON report filename
 #   -oh  Full interactive HTML report (html_report2.py)
 
-# Resolve the repo root from wherever this script lives
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -n "$SLURM_SUBMIT_DIR" ]; then
+    # Running under SLURM - use submit directory
+    REPO_ROOT="$SLURM_SUBMIT_DIR"
+else
+    # Running directly - use script location
+    REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 
 INPUT_FILE="$REPO_ROOT/datasets/sequences.fasta"
 REF_FILE="$REPO_ROOT/datasets/sequence_ref.fasta"
