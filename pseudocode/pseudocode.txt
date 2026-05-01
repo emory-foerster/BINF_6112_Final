@@ -109,8 +109,17 @@ frameshift.py
 
 
 FrameshiftDetector:
+Goal is a tool that take a list orf's found within a sequence. And searches for possible frameshift sites within user specified criteria.
+
+longest_orf:
+Look through the list of ORFs from other program and save the orf of the longest length to memory. 
+
+orf_coverage_proportion:
+Find the total length of all ORF's in provided list. Find the percent coverage of each ORF across the total length. Also known as dominance. Return the coverage proportion as a decimal. 
+
+find_neighboring_orfs:
+Searching 
 
 
-ima finish this tomorrow promise genomics being annoying
 
 
