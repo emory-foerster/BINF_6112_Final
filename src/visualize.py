@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# Emory Foerster
 import re
 import sys
 from typing import Optional
