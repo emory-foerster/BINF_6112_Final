@@ -128,7 +128,10 @@ Take each potential frameshift site and store all relevant information into a di
 how many frames it shifted, and the full gene information. Return the whole collection of those records.
 
 annotate_all_dominance:
-For every gene in the 
+For every ORF found from the program assign it a dominance proportion for how much of it covers the whole sequence.
+
+analyze:
+
 
 
 
