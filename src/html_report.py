@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Emory Foerster 
+# Claude Sonnet 4.6
 from datetime import datetime
 import sys
 import plotly.graph_objects as go
