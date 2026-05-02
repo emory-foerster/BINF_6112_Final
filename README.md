@@ -47,7 +47,7 @@ conda env create -f environment.yml
 Alternatively, you can install the core dependencies manually with:
 
 ```bash
-pip install pandas plotly colorama flask pytest
+pip install pandas plotly colorama numpy flask pytest
 ```
 
 ## Usage
